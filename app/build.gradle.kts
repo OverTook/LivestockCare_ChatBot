@@ -44,6 +44,8 @@ dependencies {
     implementation(libs.androidx.databinding.runtime)
 
     implementation(libs.lottie)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
