@@ -1,5 +1,6 @@
 [versions]
 agp = "8.4.0"
+kakaomapV = "2.11.1"
 converterGson = "2.9.0"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
@@ -15,6 +16,7 @@ databindingRuntime = "8.4.0"
 retrofit = "2.11.0"
 
 [libraries]
+kakaomap = { module = "com.kakao.maps.open:android", version.ref = "kakaomapV" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

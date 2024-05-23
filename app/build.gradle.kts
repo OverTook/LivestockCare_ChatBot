@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.lottie)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.kakaomap)
+    implementation("com.kakao.sdk:v2-all:2.20.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
