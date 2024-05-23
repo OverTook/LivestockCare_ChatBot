@@ -71,4 +71,13 @@
         tools:layout_editor_absoluteX="16dp">
     </androidx.viewpager2.widget.ViewPager2>
 
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/init_loading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#C0000000"
+        android:clickable="true"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/loading" />
 </androidx.constraintlayout.widget.ConstraintLayout>

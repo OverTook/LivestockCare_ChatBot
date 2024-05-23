@@ -48,6 +48,7 @@ class MapFragment : Fragment() {
         }, object : KakaoMapReadyCallback() {
             override fun onMapReady(kakaoMapReady: KakaoMap) {
                 kakaoMap = kakaoMapReady
+                (activity as MainActivity).initEnd()
             }
         })
         return viewOfLayout

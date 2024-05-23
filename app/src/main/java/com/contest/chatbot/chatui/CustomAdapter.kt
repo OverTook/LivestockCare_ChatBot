@@ -25,7 +25,7 @@ class CustomAdapter(private val myDataList: ArrayList<Item>, private val recycle
         myDataList.add(item)
         this.notifyItemInserted(myDataList.size - 1)
         waitMessage = true
-        myDataList.add(Item("", "", "", ViewType.WAIT_MSG))
+        myDataList.add(Item("", "", ViewType.WAIT_MSG))
         this.notifyItemInserted(myDataList.size - 1)
         recyclerView.smoothScrollToPosition(myDataList.size - 1)
     }

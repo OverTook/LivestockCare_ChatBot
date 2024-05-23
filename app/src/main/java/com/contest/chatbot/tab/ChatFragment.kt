@@ -1,24 +1,33 @@
 package com.contest.chatbot.tab
 
+import android.content.Context.INPUT_METHOD_SERVICE
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.contest.chatbot.ChatRequest
+import com.contest.chatbot.ChatResponse
+import com.contest.chatbot.HistoryData
+import com.contest.chatbot.MainActivity
+import com.contest.chatbot.NetworkManager
 import com.contest.chatbot.R
 import com.contest.chatbot.chatui.CustomAdapter
 import com.contest.chatbot.chatui.Item
 import com.contest.chatbot.chatui.ViewType
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.contest.chatbot.history.ChatHistoryManager
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -26,12 +35,15 @@ import java.util.Locale
 
 class ChatFragment : Fragment(), View.OnClickListener {
 
+    private val dataList: ArrayList<Item> = ArrayList<Item>()
+
+    private var waitForResponse: Boolean = false
+
+    private lateinit var historyManager: ChatHistoryManager
+    private lateinit var imm: InputMethodManager
     private lateinit var viewOfLayout: View
-
-    private var dataList: ArrayList<Item> = ArrayList<Item>();
     private lateinit var adapter: CustomAdapter
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
-
+    private lateinit var chatHistory: List<HistoryData>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,9 +52,13 @@ class ChatFragment : Fragment(), View.OnClickListener {
     ): View? {
         viewOfLayout = inflater.inflate(R.layout.fragment_chat, container, false);
 
-        initializeData()
+        historyManager = ChatHistoryManager(requireContext())
+        chatHistory = if(historyManager.loadHistoryList() != null) {
+            historyManager.loadHistoryList()!!
+        } else {
+            ArrayList()
+        }
 
-        Log.e("STARTED", "CHAT")
         val btn: ImageButton = viewOfLayout.findViewById(R.id.chat_send_btn)
         btn.setOnClickListener(this);
 
@@ -58,34 +74,66 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
         adapter = CustomAdapter(dataList, recyclerView)
         recyclerView.setAdapter(adapter)
+
+        imm = requireActivity().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+
+        //키 Enter 이벤트
+        val input: EditText = viewOfLayout.findViewById(R.id.chat_input)
+        input.setOnKeyListener(View.OnKeyListener { v, keyCode, event -> //Enter key Action
+            if ((event.action == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                imm.hideSoftInputFromWindow(requireView().windowToken, 0)
+
+
+                //처리
+                if(waitForResponse)
+                    return@OnKeyListener true
+
+                sendAndWait(input.text.toString())
+                input.setText("")
+
+                return@OnKeyListener true
+            }
+            false
+        })
+
+        //채팅 목록 불러오기
+        chatHistory.forEach { history ->
+            if(history.role == "user") {
+                adapter.addItem(Item(history.content, history.timestamp, ViewType.RIGHT_CHAT))
+            } else {
+                adapter.addItem(Item(history.content, history.timestamp, ViewType.LEFT_CHAT))
+            }
+        }
+
+        (activity as MainActivity).initEnd()
     }
 
     private fun sendAndWait(msg: String) {
-        adapter.addItem(Item(msg, "", getCurrentTime(), ViewType.RIGHT_CHAT))
-        coroutineScope.launch {
-            delay(3000)
-            withContext(Dispatchers.Main) {
-                adapter.addItem(Item(msg + "에 대한 답장이에요", "", getCurrentTime(), ViewType.LEFT_CHAT))
-            }
-        }
-    }
+        adapter.addItem(Item(msg, getCurrentTime(), ViewType.RIGHT_CHAT))
+        waitForResponse = true
+        NetworkManager.apiService.chat(ChatRequest(msg, chatHistory)).enqueue(object :
+            Callback<ChatResponse> {
+            override fun onResponse(call: Call<ChatResponse>, response: Response<ChatResponse>) {
+                waitForResponse = false
 
-    private fun initializeData() {
-        dataList.add(Item("안녕하세요 HCI연구팀 공모전 참여하는 김도환, 송주훈, 고건호, 한신영 팀입니다.", "", "8:31 AM", ViewType.RIGHT_CHAT))
-        dataList.add(Item("안녕하세요. 이것은 테스트용 답변입니다. 반갑습니다.", "", "null", ViewType.LEFT_CHAT))
-        dataList.add(Item("안녕하세요", "null", "오후 2:01", ViewType.RIGHT_CHAT))
-        dataList.add(Item("안녕하세요", "스틱코드", "오후 2:00", ViewType.LEFT_CHAT))
-        dataList.add(Item("안녕하세요", "null", "오후 2:01", ViewType.RIGHT_CHAT))
-        dataList.add(Item("안녕하세요", "스틱코드", "오후 2:00", ViewType.LEFT_CHAT))
-        dataList.add(Item("안녕하세요", "null", "오후 2:01", ViewType.RIGHT_CHAT))
-        dataList.add(Item("안녕하세요", "스틱코드", "오후 2:00", ViewType.LEFT_CHAT))
-        dataList.add(Item("안녕하세요", "null", "오후 2:01", ViewType.RIGHT_CHAT))
-        dataList.add(Item("안녕하세요", "스틱코드", "오후 2:00", ViewType.LEFT_CHAT))
-        dataList.add(Item("안녕하세요", "null", "오후 2:01", ViewType.RIGHT_CHAT))
-        dataList.add(Item("안녕하세요", "스틱코드", "오후 2:00", ViewType.LEFT_CHAT))
-        dataList.add(Item("안녕하세요", "null", "오후 2:01", ViewType.RIGHT_CHAT))
-        dataList.add(Item("안녕하세요", "스틱코드", "오후 2:00", ViewType.LEFT_CHAT))
-        dataList.add(Item("안녕하세요", "null", "오후 2:01", ViewType.RIGHT_CHAT))
+                if(!response.isSuccessful) {
+                    adapter.addItem(Item("요청이 올바르지 않습니다.", getCurrentTime(), ViewType.LEFT_CHAT))
+                    return
+                }
+
+                val body = response.body() ?: return
+
+                chatHistory = body.history
+                adapter.addItem(Item(body.msg, getCurrentTime(), ViewType.LEFT_CHAT))
+
+                historyManager.saveHistoryList(chatHistory)
+            }
+
+            override fun onFailure(call: Call<ChatResponse>, err: Throwable) {
+                adapter.addItem(Item("서버 연결에 실패하였습니다.", getCurrentTime(), ViewType.LEFT_CHAT))
+            }
+
+        })
     }
 
     fun getCurrentTime(): String {
@@ -95,8 +143,14 @@ class ChatFragment : Fragment(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
+        //버튼으로 보내는 부분
         when (v!!.id) {
             R.id.chat_send_btn -> {
+                imm.hideSoftInputFromWindow(requireView().windowToken, 0)
+
+                if(waitForResponse)
+                    return
+
                 val input: EditText = viewOfLayout.findViewById(R.id.chat_input)
                 sendAndWait(input.text.toString())
                 input.setText("")

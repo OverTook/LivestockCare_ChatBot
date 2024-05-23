@@ -2,11 +2,14 @@ package com.contest.chatbot
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.viewpager2.widget.ViewPager2
+import com.airbnb.lottie.LottieAnimationView
 import com.contest.chatbot.tab.ViewPagerAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
@@ -16,6 +19,7 @@ import com.kakao.vectormap.KakaoMapSdk
 
 class MainActivity : AppCompatActivity() {
 
+    private var initCount = 2
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,5 +69,15 @@ class MainActivity : AppCompatActivity() {
             override fun onTabReselected(tab: TabLayout.Tab) {
             }
         })
+    }
+
+    fun initEnd() {
+        initCount--
+        if (initCount != 0)
+            return
+
+        val anim = findViewById<LottieAnimationView>(R.id.init_loading)
+        //(anim.parent as ViewGroup).removeView(anim)
+        anim.visibility = View.GONE
     }
 }

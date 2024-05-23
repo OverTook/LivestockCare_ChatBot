@@ -4,24 +4,48 @@ import com.google.gson.annotations.SerializedName
 
 data class ClusteringResponse (
     @SerializedName("data")
-    val Data: List<ClusteringDataItem>
+    val Data: List<ClusteringData>
 )
 
-data class ClusteringDataItem (
+data class ClusteringData (
     @SerializedName("addr_code")
-    val AddressCode: String,
+    val addressCode: String,
     @SerializedName("addr_name")
-    val AddressName: String,
+    val addressName: String,
     @SerializedName("alpha")
-    val Alpha: String,
+    val alpha: String,
     @SerializedName("filter")
-    val Filter: String,
+    val filter: String,
     @SerializedName("geometry")
-    val Geometry: List<List<List<List<Double>>>>,
+    val geometry: List<List<List<List<Double>>>>,
     @SerializedName("lat")
-    val Lat: String,
+    val lat: String,
     @SerializedName("lng")
-    val Lng: String,
+    val lng: String,
     @SerializedName("total_occur_count")
-    val TotalOccurCount: String
+    val totalOccurCount: String
+)
+
+data class HistoryData (
+    @SerializedName("content")
+    val content: String,
+    @SerializedName("role")
+    val role: String,
+    @SerializedName("timestamp")
+    val timestamp: String
+)
+data class ChatResponse (
+    @SerializedName("history")
+    val history: List<HistoryData>,
+    @SerializedName("msg")
+    val msg: String,
+    @SerializedName("result")
+    val result: String,
+    @SerializedName("timestamp")
+    val timestamp: String
+)
+
+data class ChatRequest (
+    @SerializedName("msg") val msg: String,
+    @SerializedName("history") val history: List<HistoryData>
 )
