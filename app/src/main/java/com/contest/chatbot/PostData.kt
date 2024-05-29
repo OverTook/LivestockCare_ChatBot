@@ -1,6 +1,8 @@
 package com.contest.chatbot
 
 import com.google.gson.annotations.SerializedName
+import java.util.Date
+
 
 data class ClusteringResponse (
     @SerializedName("data")
@@ -25,6 +27,59 @@ data class ClusteringData (
     @SerializedName("total_occur_count")
     val totalOccurCount: String
 )
+
+
+// =========================================================================== //
+
+
+data class DiseaseListItemData (
+    @SerializedName("addr_code")
+    val addressCode: String,
+    @SerializedName("addr_name")
+    val addressName: String,
+    @SerializedName("dgnss_engn")
+    val dgnssEngn: String,
+    @SerializedName("disease_code")
+    val diseaseCode: String,
+    @SerializedName("disease_name")
+    val diseaseName: String,
+    @SerializedName("end_date")
+    val endDate: Date?,
+    @SerializedName("farm_name")
+    val farmName: String,
+    @SerializedName("id")
+    val id: Int,
+    @SerializedName("livestock_type")
+    val livestockType: String,
+    @SerializedName("occur_count")
+    val occurCount: Int,
+    @SerializedName("occur_date")
+    val occurDate: Date
+)
+
+data class DiseaseListData (
+    @SerializedName("disease_list")
+    val diseaseList: List<DiseaseListItemData>,
+    @SerializedName("addr")
+    val address: String,
+    @SerializedName("filter")
+    val filter: String,
+    @SerializedName("total_occur_count")
+    val totalOccurCount: Int
+)
+
+data class DiseaseListResponse (
+    @SerializedName("data")
+    val data: DiseaseListData,
+    @SerializedName("msg")
+    val msg: String,
+    @SerializedName("result")
+    val result: String
+)
+
+
+// =========================================================================== //
+
 
 data class HistoryData (
     @SerializedName("content")

@@ -32,6 +32,14 @@
             android:background="#FFFFFF"
             tools:layout_editor_absoluteX="1dp">
 
+            <ImageButton
+                android:id="@+id/mask_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0"
+                android:src="@null"
+                android:translationZ="100dp" />
+
             <EditText
                 android:id="@+id/chat_input_background"
                 android:layout_width="match_parent"
@@ -64,10 +72,12 @@
                 android:inputType="text"
                 android:paddingStart="20dp"
                 android:paddingTop="260dp"
-                android:paddingEnd="20dp"
+                android:paddingEnd="50dp"
                 android:paddingBottom="100dp"
+                android:singleLine="true"
                 android:textColor="#000000"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:translationZ="0dp" />
 
             <ImageButton
                 android:id="@+id/chat_send_btn"
@@ -77,8 +87,9 @@
                 android:layout_alignEnd="@id/chat_input_background"
                 android:layout_alignBottom="@+id/chat_input_background"
                 android:background="@drawable/input_send_button"
-                android:translationZ="50dp"
+                android:translationZ="250dp"
                 app:srcCompat="@drawable/baseline_send_24" />
+
         </RelativeLayout>
 
     </RelativeLayout>

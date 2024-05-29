@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.kakaomap)
     implementation("com.kakao.sdk:v2-all:2.20.2")
+    implementation(libs.androidx.material3.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

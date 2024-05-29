@@ -1,7 +1,6 @@
 package com.contest.chatbot.tab
 
 import android.content.Context.INPUT_METHOD_SERVICE
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -11,20 +10,17 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.contest.chatbot.ChatRequest
 import com.contest.chatbot.ChatResponse
 import com.contest.chatbot.HistoryData
-import com.contest.chatbot.MainActivity
 import com.contest.chatbot.NetworkManager
 import com.contest.chatbot.R
 import com.contest.chatbot.chatui.CustomAdapter
 import com.contest.chatbot.chatui.Item
 import com.contest.chatbot.chatui.ViewType
-import com.contest.chatbot.history.ChatHistoryManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -35,15 +31,14 @@ import java.util.Locale
 
 class ChatFragment : Fragment(), View.OnClickListener {
 
-    private val dataList: ArrayList<Item> = ArrayList<Item>()
+    private val dataList: ArrayList<Item> = ArrayList()
 
     private var waitForResponse: Boolean = false
+    private var chatHistory: ArrayList<HistoryData> = ArrayList()
 
-    private lateinit var historyManager: ChatHistoryManager
     private lateinit var imm: InputMethodManager
     private lateinit var viewOfLayout: View
     private lateinit var adapter: CustomAdapter
-    private lateinit var chatHistory: List<HistoryData>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,12 +47,8 @@ class ChatFragment : Fragment(), View.OnClickListener {
     ): View? {
         viewOfLayout = inflater.inflate(R.layout.fragment_chat, container, false);
 
-        historyManager = ChatHistoryManager(requireContext())
-        chatHistory = if(historyManager.loadHistoryList() != null) {
-            historyManager.loadHistoryList()!!
-        } else {
-            ArrayList()
-        }
+        val maskView: View = viewOfLayout.findViewById(R.id.mask_view)
+        maskView.setOnClickListener(this)
 
         val btn: ImageButton = viewOfLayout.findViewById(R.id.chat_send_btn)
         btn.setOnClickListener(this);
@@ -69,8 +60,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
         super.onViewCreated(view, savedInstanceState)
 
         val recyclerView: RecyclerView = viewOfLayout.findViewById(R.id.chat_list_recycler)
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(context)
-        recyclerView.layoutManager = layoutManager
+        recyclerView.layoutManager = LinearLayoutManager(context)
 
         adapter = CustomAdapter(dataList, recyclerView)
         recyclerView.setAdapter(adapter)
@@ -79,11 +69,13 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
         //키 Enter 이벤트
         val input: EditText = viewOfLayout.findViewById(R.id.chat_input)
-        input.setOnKeyListener(View.OnKeyListener { v, keyCode, event -> //Enter key Action
+        input.setOnKeyListener(View.OnKeyListener { _, keyCode, event -> //Enter key Action
             if ((event.action == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
                 imm.hideSoftInputFromWindow(requireView().windowToken, 0)
 
-
+                if(input.text.isNullOrBlank()) {
+                    return@OnKeyListener true
+                }
                 //처리
                 if(waitForResponse)
                     return@OnKeyListener true
@@ -104,8 +96,6 @@ class ChatFragment : Fragment(), View.OnClickListener {
                 adapter.addItem(Item(history.content, history.timestamp, ViewType.LEFT_CHAT))
             }
         }
-
-        (activity as MainActivity).initEnd()
     }
 
     private fun sendAndWait(msg: String) {
@@ -123,10 +113,9 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
                 val body = response.body() ?: return
 
-                chatHistory = body.history
-                adapter.addItem(Item(body.msg, getCurrentTime(), ViewType.LEFT_CHAT))
+                chatHistory = body.history as ArrayList<HistoryData>
 
-                historyManager.saveHistoryList(chatHistory)
+                adapter.addItem(Item(body.msg, getCurrentTime(), ViewType.LEFT_CHAT))
             }
 
             override fun onFailure(call: Call<ChatResponse>, err: Throwable) {
@@ -144,16 +133,25 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         //버튼으로 보내는 부분
+        Log.e("WHO", v!!.id.toString())
         when (v!!.id) {
             R.id.chat_send_btn -> {
                 imm.hideSoftInputFromWindow(requireView().windowToken, 0)
 
+                val input: EditText = viewOfLayout.findViewById(R.id.chat_input)
+                if(input.text.isNullOrBlank()) {
+                    return
+                }
+
                 if(waitForResponse)
                     return
 
-                val input: EditText = viewOfLayout.findViewById(R.id.chat_input)
                 sendAndWait(input.text.toString())
                 input.setText("")
+            }
+            R.id.mask_view -> {
+                viewOfLayout.findViewById<EditText>(R.id.chat_input).requestFocus()
+                imm.showSoftInput(viewOfLayout.findViewById<EditText>(R.id.chat_input), android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
             }
         }
     }
