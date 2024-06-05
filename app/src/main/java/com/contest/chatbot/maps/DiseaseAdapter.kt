@@ -1,5 +1,6 @@
 package com.contest.chatbot.maps
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +11,7 @@ import com.contest.chatbot.R
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class DiseaseAdapter(private val items: List<DiseaseListItemData>) : RecyclerView.Adapter<DiseaseAdapter.ViewHolder>() {
+class DiseaseAdapter(private var items: List<DiseaseListItemData>) : RecyclerView.Adapter<DiseaseAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val location: TextView = itemView.findViewById(R.id.detail_location)
@@ -36,4 +37,16 @@ class DiseaseAdapter(private val items: List<DiseaseListItemData>) : RecyclerVie
     }
 
     override fun getItemCount(): Int = items.size
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun clearItems() {
+        items = emptyList()
+        notifyDataSetChanged()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setItems(items: List<DiseaseListItemData>) {
+        this.items = items
+        notifyDataSetChanged()
+    }
 }

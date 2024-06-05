@@ -1,6 +1,9 @@
 package com.contest.chatbot.tab
 
+import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -10,9 +13,11 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.RelativeLayout
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.lottie.LottieAnimationView
 import com.contest.chatbot.ChatRequest
 import com.contest.chatbot.ChatResponse
 import com.contest.chatbot.HistoryData
@@ -40,6 +45,8 @@ class ChatFragment : Fragment(), View.OnClickListener {
     private lateinit var viewOfLayout: View
     private lateinit var adapter: CustomAdapter
 
+    private var startedChat: Boolean = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -51,7 +58,10 @@ class ChatFragment : Fragment(), View.OnClickListener {
         maskView.setOnClickListener(this)
 
         val btn: ImageButton = viewOfLayout.findViewById(R.id.chat_send_btn)
-        btn.setOnClickListener(this);
+        btn.setOnClickListener(this)
+
+        val anim: LottieAnimationView = viewOfLayout.findViewById(R.id.hello_animation)
+        anim.setOnClickListener(this)
 
         return viewOfLayout
     }
@@ -88,17 +98,17 @@ class ChatFragment : Fragment(), View.OnClickListener {
             false
         })
 
-        //채팅 목록 불러오기
-        chatHistory.forEach { history ->
-            if(history.role == "user") {
-                adapter.addItem(Item(history.content, history.timestamp, ViewType.RIGHT_CHAT))
-            } else {
-                adapter.addItem(Item(history.content, history.timestamp, ViewType.LEFT_CHAT))
-            }
-        }
+
     }
 
     private fun sendAndWait(msg: String) {
+        if(!startedChat) {
+            val parent = viewOfLayout.findViewById<RelativeLayout>(R.id.no_text_alert_layout)
+            val root = parent.parent as RelativeLayout
+            root.removeView(parent)
+        }
+
+        startedChat = true
         adapter.addItem(Item(msg, getCurrentTime(), ViewType.RIGHT_CHAT))
         waitForResponse = true
         NetworkManager.apiService.chat(ChatRequest(msg, chatHistory)).enqueue(object :
@@ -153,6 +163,21 @@ class ChatFragment : Fragment(), View.OnClickListener {
                 viewOfLayout.findViewById<EditText>(R.id.chat_input).requestFocus()
                 imm.showSoftInput(viewOfLayout.findViewById<EditText>(R.id.chat_input), android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
             }
+            R.id.hello_animation -> {
+                sendAndWait("안녕하세요!")
+            }
+        }
+    }
+
+    private fun isInternetAvailable(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return when {
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
         }
     }
 }

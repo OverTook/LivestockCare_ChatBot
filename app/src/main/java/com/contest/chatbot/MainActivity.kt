@@ -3,11 +3,8 @@ package com.contest.chatbot
 import android.annotation.SuppressLint
 import android.graphics.Rect
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.ViewTreeObserver
-import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -106,6 +103,11 @@ class MainActivity : AppCompatActivity() {
         })
 
 
+        val showDialogButton = findViewById<ImageButton>(R.id.info_btn)
+        showDialogButton.setOnClickListener {
+            val customDialog = InfoDialog(this)
+            customDialog.show()
+        }
         doubleBackPressHandler.enable()
     }
 

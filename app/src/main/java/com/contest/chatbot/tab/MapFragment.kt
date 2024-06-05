@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.contest.chatbot.DiseaseListResponse
@@ -34,7 +35,7 @@ class MapFragment : Fragment() {
 
     //질병 목록 조회, 다른 목록 요청시 취소하기 위해 전역 변수로 캐싱
     private var lastCallDisease: Call<DiseaseListResponse>? = null
-
+    private var toast: Toast? = null
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,6 +80,10 @@ class MapFragment : Fragment() {
     fun showDisease(pos: LatLng) {
         lastCallDisease?.cancel() //이전 요청은 취소한다.
 
+
+        //diseaseListManager.setData("지역을 불러오는 중입니다.", ArrayList<DiseaseListItemData>())
+        diseaseListManager.show(supportFragmentManager, diseaseListManager.tag)
+
         lastCallDisease = NetworkManager.apiService.getDiseaseData(pos.latitude, pos.longitude, kakaoMap.zoomLevel)
         lastCallDisease?.enqueue(object : Callback<DiseaseListResponse> {
             override fun onResponse(call: Call<DiseaseListResponse>, response: Response<DiseaseListResponse>) {
@@ -94,11 +99,17 @@ class MapFragment : Fragment() {
 
                 val data = response.body()!!.data
                 if(data.diseaseList.isEmpty()) { //현재 요청이 이전 요청이거나 목록이 비어있으면 더 진행하지 않는다
+                    diseaseListManager.dismiss()
+                    toast?.cancel()
+                    toast = Toast.makeText(requireContext(), "해당 지역은 질병 발생 정보가 없습니다.", Toast.LENGTH_SHORT)
+                    toast?.show()
                     return
                 }
 
-                diseaseListManager.setData(data.address, data.diseaseList)
-                diseaseListManager.show(supportFragmentManager, diseaseListManager.tag)
+                diseaseListManager.setData(buildString {
+                    append(data.address)
+                    append("의 질병 발생 현황")
+                }, data.diseaseList)
 
                 lastCallDisease = null //요청 처리 완료되었으니 비워준다.
             }

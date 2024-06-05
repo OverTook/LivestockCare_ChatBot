@@ -14,15 +14,83 @@
         android:background="#EFEDF8"
         tools:context=".MainActivity">
 
+        <RelativeLayout
+            android:id="@+id/no_text_alert_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/relativeLayout"
+            android:clickable="true"
+            android:gravity="center"
+            android:translationZ="100dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/no_text_alert_bg"
+                android:layout_width="280dp"
+                android:layout_height="230dp"
+                android:background="@drawable/no_text_bg"
+                android:clickable="false"
+                android:focusable="true"
+                android:gravity="center_horizontal">
+
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/hello_animation"
+                    android:layout_width="125dp"
+                    android:layout_height="125dp"
+                    android:layout_marginTop="10dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/no_text_msg2"
+                    app:lottie_autoPlay="true"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/hello" />
+
+                <TextView
+                    android:id="@+id/no_text_msg"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginEnd="30dp"
+                    android:text="메시지가 없습니다..."
+                    android:textAlignment="center"
+                    android:textColor="@color/gray"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/no_text_msg2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginEnd="30dp"
+                    android:text="메시지를 보내거나 탭을 하여 아래의 인사를 보내보세요."
+                    android:textAlignment="center"
+                    android:textColor="@color/gray"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/no_text_msg" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </RelativeLayout>
+
+
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/chat_list_recycler"
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:layout_above="@+id/relativeLayout"
             android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="false"
             android:elevation="5dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:layout_editor_absoluteX="93dp" />
+            tools:layout_editor_absoluteX="93dp"/>
 
         <RelativeLayout
             android:id="@+id/relativeLayout"

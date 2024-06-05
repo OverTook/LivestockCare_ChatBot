@@ -10,7 +10,7 @@ import com.contest.chatbot.R
 
 class CustomAdapter(private val myDataList: ArrayList<Item>, private val recyclerView: RecyclerView) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var waitMessage = false
+    private var waitMessage = false
     fun addItem(item: Item) {
         if(waitMessage) {
             waitMessage = false
