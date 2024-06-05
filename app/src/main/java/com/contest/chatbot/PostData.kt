@@ -4,6 +4,19 @@ import com.google.gson.annotations.SerializedName
 import java.util.Date
 
 
+data class CenterAddrResponse (
+    @SerializedName("addr")
+    val addr: String,
+    @SerializedName("msg")
+    val msg: String,
+    @SerializedName("result")
+    val result: String
+)
+
+
+// =========================================================================== //
+
+
 data class ClusteringResponse (
     @SerializedName("data")
     val Data: List<ClusteringData>
@@ -15,7 +28,7 @@ data class ClusteringData (
     @SerializedName("addr_name")
     val addressName: String,
     @SerializedName("alpha")
-    val alpha: String,
+    val alpha: Float,
     @SerializedName("filter")
     val filter: String,
     @SerializedName("geometry")
