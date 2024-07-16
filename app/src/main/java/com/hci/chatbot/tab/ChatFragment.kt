@@ -139,7 +139,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
                 if(curChatCount <= 0) {
                     Snackbar.make(viewOfLayout.findViewById(R.id.main), "금일 챗봇 이용 횟수가 소진되었습니다.", Snackbar.LENGTH_LONG)
-                        .setAnchorView(viewOfLayout.findViewById(R.id.relativeLayout))
+                        .setAnchorView(viewOfLayout.findViewById(R.id.chat_input_background))
                         .show()
                     return@OnKeyListener true
                 }
@@ -266,7 +266,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
             R.id.hello_animation -> {
                 if(curChatCount <= 0) {
                     Snackbar.make(viewOfLayout.findViewById(R.id.main), "금일 챗봇 이용 횟수가 소진되었습니다.", Snackbar.LENGTH_LONG)
-                        .setAnchorView(viewOfLayout.findViewById(R.id.relativeLayout))
+                        .setAnchorView(viewOfLayout.findViewById(R.id.chat_input_background))
                         .show()
                     return
                 }
