@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "493103304480",
+    "project_id": "hci-animal-chatbot",
+    "storage_bucket": "hci-animal-chatbot.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:493103304480:android:e0078728a9672dc76e9145",
+        "android_client_info": {
+          "package_name": "com.hci.chatbot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtKob2uXOTsC76MMI8FIqlVLm-_9PeHG8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

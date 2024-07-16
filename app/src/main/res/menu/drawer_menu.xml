@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:id="@+id/group1"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/subtitle1"
+            android:title="결제 관리">
+            <menu>
+                <item
+                    android:id="@+id/item1"
+                    android:checked="true"
+                    android:icon="@android:drawable/ic_dialog_alert"
+                    android:title="결제 품목 1" />
+                <item
+                    android:id="@+id/item2"
+                    android:icon="@drawable/ic_launcher_foreground"
+                    android:title="결제 품목 2" />
+                <item
+                    android:id="@+id/item3"
+                    android:icon="@drawable/baseline_send_24"
+                    android:title="결제 품목 3" />
+            </menu>
+        </item>
+
+    </group>
+
+    <group
+        android:id="@+id/group2"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/subtitle2"
+            android:title="이용약관">
+            <menu>
+                <item
+                    android:id="@+id/item4"
+                    android:icon="@drawable/sharp_info_24"
+                    android:title="개인정보처리방침" />
+
+                <item
+                    android:id="@+id/item5"
+                    android:icon="@drawable/input_send_button"
+                    android:title="앱 사용 약관 등~~" />
+
+            </menu>
+        </item>
+    </group>
+
+    <group
+        android:id="@+id/group3"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/item6"
+            android:icon="@drawable/sharp_info_24"
+            android:title="기타" />
+
+        <item
+            android:id="@+id/item7"
+            android:icon="@drawable/input_send_button"
+            android:title="문의" />
+
+        <item
+            android:id="@+id/item8"
+            android:icon="@drawable/input_send_button"
+            android:title="앱 정보" />
+
+        <item
+            android:id="@+id/navView_logout"
+            android:icon="@drawable/input_send_button"
+            android:title="로그아웃" />
+    </group>
+</menu>
