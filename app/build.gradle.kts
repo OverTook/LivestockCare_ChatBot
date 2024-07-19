@@ -5,6 +5,11 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        create("release") {
+        }
+    }
+
     namespace = "com.hci.chatbot"
     compileSdk = 34
 
@@ -12,8 +17,8 @@ android {
         applicationId = "com.hci.chatbot"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 7
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,7 +61,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
-
+    implementation("com.android.billingclient:billing:5.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3")
     implementation("androidx.credentials:credentials:1.2.2")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")

@@ -3,6 +3,7 @@ package com.hci.chatbot
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Bundle
 import android.view.ViewTreeObserver
 import android.widget.ImageButton
@@ -111,13 +112,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-
-//        val showDialogButton = findViewById<ImageButton>(R.id.menu_btn)
-//        showDialogButton.setOnClickListener {
-//            val customDialog = InfoDialog(this)
-//            customDialog.show()
-//        }
-
         drawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
         findViewById<ImageButton>(R.id.menu_btn).setOnClickListener {
@@ -137,6 +131,26 @@ class MainActivity : AppCompatActivity() {
 
         navView.setNavigationItemSelectedListener {
             when(it.itemId) {
+                // 정기 결제
+                R.id.purchase_btn -> {
+                    val billingDialog = BillingDialog(this, this)
+                    billingDialog.show()
+                    true
+                }
+
+                // 개인정보처리방침
+                R.id.terms_btn -> {
+                    var intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/OverTook/LivestockCare_ChatBot/main/PrivacyPolicy.html"))
+                    startActivity(intent)
+                    true
+                }
+
+                // 앱 정보
+                R.id.info_btn -> {
+                    val customDialog = InfoDialog(this)
+                    customDialog.show()
+                    true
+                }
                 R.id.navView_logout -> {
                     mAuth!!.signOut()
                     val intent = Intent(
@@ -150,6 +164,8 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
+
 
         doubleBackPressHandler.enable(drawerLayout)
     }

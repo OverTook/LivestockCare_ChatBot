@@ -138,3 +138,11 @@ data class AccountLoginResponse (
 
     val token: String
 )
+
+// =========================================================================== //
+
+data class ValidReceptionResponse (
+    val result: String,
+    val msg: String
+)
+

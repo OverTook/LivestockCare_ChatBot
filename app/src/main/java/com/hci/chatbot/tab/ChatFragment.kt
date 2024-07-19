@@ -1,9 +1,6 @@
 package com.hci.chatbot.tab
 
-import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -15,11 +12,11 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.RelativeLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
+import com.google.android.material.snackbar.Snackbar
 import com.hci.chatbot.R
 import com.hci.chatbot.chatui.CustomAdapter
 import com.hci.chatbot.chatui.Item
@@ -29,7 +26,6 @@ import com.hci.chatbot.network.ChatResponse
 import com.hci.chatbot.network.HistoryData
 import com.hci.chatbot.network.NetworkManager
 import com.hci.chatbot.network.ValidChatCountResponse
-import com.google.android.material.snackbar.Snackbar
 import com.hci.chatbot.utils.SharedPreferenceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

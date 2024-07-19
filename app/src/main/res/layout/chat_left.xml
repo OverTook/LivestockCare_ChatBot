@@ -39,7 +39,7 @@
                     android:id="@+id/imageView2"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:srcCompat="@android:drawable/sym_def_app_icon" />
+                    app:srcCompat="@drawable/kuvet_icon" />
             </androidx.cardview.widget.CardView>
 
             <TextView
@@ -50,7 +50,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/nanum_regular"
                 android:gravity="center_vertical"
-                android:text="GPT"
+                android:text="KUVet Chatbot"
                 android:textColor="@color/black" />
 
         </LinearLayout>

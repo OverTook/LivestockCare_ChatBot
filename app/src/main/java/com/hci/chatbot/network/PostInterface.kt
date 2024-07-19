@@ -28,4 +28,7 @@ interface PostInterface {
 
     @POST("/chat")
     fun chat(@Body requestData: ChatRequest) : Call<ChatResponse>
+
+    @GET("/valid_reception")
+    fun validReception(@Query("data") data: String) : Call<ValidReceptionResponse>
 }

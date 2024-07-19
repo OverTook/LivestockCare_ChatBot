@@ -9,18 +9,10 @@
             android:title="결제 관리">
             <menu>
                 <item
-                    android:id="@+id/item1"
+                    android:id="@+id/purchase_btn"
                     android:checked="true"
                     android:icon="@android:drawable/ic_dialog_alert"
-                    android:title="결제 품목 1" />
-                <item
-                    android:id="@+id/item2"
-                    android:icon="@drawable/ic_launcher_foreground"
-                    android:title="결제 품목 2" />
-                <item
-                    android:id="@+id/item3"
-                    android:icon="@drawable/baseline_send_24"
-                    android:title="결제 품목 3" />
+                    android:title="정기 결제" />
             </menu>
         </item>
 
@@ -31,17 +23,12 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/subtitle2"
-            android:title="이용약관">
+            android:title="이용 약관">
             <menu>
                 <item
-                    android:id="@+id/item4"
+                    android:id="@+id/terms_btn"
                     android:icon="@drawable/sharp_info_24"
                     android:title="개인정보처리방침" />
-
-                <item
-                    android:id="@+id/item5"
-                    android:icon="@drawable/input_send_button"
-                    android:title="앱 사용 약관 등~~" />
 
             </menu>
         </item>
@@ -49,25 +36,29 @@
 
     <group
         android:id="@+id/group3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:checkableBehavior="single">
         <item
-            android:id="@+id/item6"
-            android:icon="@drawable/sharp_info_24"
-            android:title="기타" />
+            android:id="@+id/subtitle3"
+            android:title="기타">
+            <menu>
+                <item
+                    android:id="@+id/inquire_btn"
+                    android:icon="@drawable/sharp_info_24"
+                    android:title="문의" />
 
-        <item
-            android:id="@+id/item7"
-            android:icon="@drawable/input_send_button"
-            android:title="문의" />
+                <item
+                    android:id="@+id/info_btn"
+                    android:icon="@drawable/input_send_button"
+                    android:title="앱 정보" />
 
-        <item
-            android:id="@+id/item8"
-            android:icon="@drawable/input_send_button"
-            android:title="앱 정보" />
+                <item
+                    android:id="@+id/navView_logout"
+                    android:icon="@drawable/input_send_button"
+                    android:title="로그아웃" />
 
-        <item
-            android:id="@+id/navView_logout"
-            android:icon="@drawable/input_send_button"
-            android:title="로그아웃" />
+            </menu>
+        </item>
     </group>
 </menu>
