@@ -24,9 +24,11 @@ import com.google.android.gms.location.Priority
 import com.google.android.material.snackbar.Snackbar
 import com.hci.chatbot.MainActivity
 import com.hci.chatbot.R
+import com.hci.chatbot.maps.BottomSheetHospital
 import com.hci.chatbot.maps.BottomSheetList
 import com.hci.chatbot.network.ClusteringResponse
 import com.hci.chatbot.network.DiseaseListResponse
+import com.hci.chatbot.network.Hospital
 import com.hci.chatbot.network.HospitalResponse
 import com.hci.chatbot.network.NetworkManager
 import com.hci.chatbot.utils.SharedPreferenceManager
@@ -36,9 +38,11 @@ import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
+import com.kakao.vectormap.Poi
 import com.kakao.vectormap.camera.CameraAnimation
 import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.kakao.vectormap.label.Label
+import com.kakao.vectormap.label.LabelLayer
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
@@ -48,7 +52,7 @@ import com.kakao.vectormap.mapwidget.component.GuiImage
 import com.kakao.vectormap.mapwidget.component.GuiLayout
 import com.kakao.vectormap.mapwidget.component.GuiText
 import com.kakao.vectormap.mapwidget.component.Orientation
-import com.kakao.vectormap.shape.Polygon
+import com.skydoves.powerspinner.PowerSpinnerView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -70,6 +74,9 @@ class MapFragment : Fragment() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var currentLocationMarker: Label
 
+    private lateinit var filterAnimal: PowerSpinnerView
+    private lateinit var filterOption: PowerSpinnerView
+
     private val executor = Executors.newSingleThreadScheduledExecutor()
 
     private val infoWindows = mutableListOf<InfoWindow>()
@@ -80,10 +87,6 @@ class MapFragment : Fragment() {
     private var lastCallClustering: Call<ClusteringResponse>? = null
     private var lastCallHospital: Call<HospitalResponse>? = null
     private var toast: Toast? = null
-
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
@@ -105,6 +108,23 @@ class MapFragment : Fragment() {
             tutorialUtil.mapTutorialing = true
         }
 
+        filterAnimal = viewOfLayout.findViewById(R.id.filter_animal)
+        filterOption = viewOfLayout.findViewById(R.id.filter_option)
+        filterOption.setOnSpinnerItemSelectedListener { oldIndex: Int, _: Any?, newIndex: Int, _: Any ->
+            if (oldIndex != 2 && newIndex == 2) {
+                filterAnimal.visibility = View.INVISIBLE
+            } else if(oldIndex == 2 && newIndex != 2) {
+                filterAnimal.visibility = View.VISIBLE
+            }
+
+            getMarkers()
+            if(newIndex == 1) {
+                deleteAllHospital()
+            } else if(newIndex == 2) {
+                deleteAllMarker()
+            }
+        }
+
         mapView = viewOfLayout.findViewById(R.id.kakaoMap)
         mapView.start(object : MapLifeCycleCallback() {
             override fun onMapDestroy() {
@@ -121,17 +141,38 @@ class MapFragment : Fragment() {
                     getCurrentLocation()
                 }
 
-                kakaoMap.setOnViewportClickListener(object : KakaoMap.OnViewportClickListener {
-                    override fun onViewportClicked(p0: KakaoMap?, pos: LatLng?, p2: PointF?) {
-                        if (pos == null) return
+                kakaoMap.setOnMapClickListener { _, pos, _, _ ->
+                    if(tutorialUtil.mapTutorialing) return@setOnMapClickListener
+                    showDisease(pos)
+                }
 
-                        if(tutorialUtil.mapTutorialing) return
-                        showDisease(pos)
-                    }
-                })
+                kakaoMap.setOnLabelClickListener { _, _, label ->
+                    if(label?.tag == null) return@setOnLabelClickListener
+                    if(label.tag !is Hospital) return@setOnLabelClickListener
 
+                    val item = (label.tag as Hospital)
+
+                    val bottomSheetFragment = BottomSheetHospital()
+                    val arg = Bundle()
+                    arg.putString("hospital_name", item.hospitalName)
+                    arg.putString("hospital_address", item.address)
+                    arg.putString("phone", item.phone)
+
+                    bottomSheetFragment.arguments = arg
+                    bottomSheetFragment.show((activity as MainActivity).supportFragmentManager, "bottomSheetHospital")
+                }
+
+                var zoomLevel = kakaoMap.zoomLevel
                 //카메라 이동이 있을 떄 지도이동이 끝난 후  카메라 값을 가져옴 (이벤트 등록)
                 kakaoMap.setOnCameraMoveEndListener { _, _, _ ->
+                    Log.e("KakaoZoomLevel", kakaoMap.zoomLevel.toString() + " " + zoomLevel.toString())
+                    if(kakaoMap.zoomLevel < 14 && zoomLevel >= 14 && filterOption.selectedIndex != 1) {
+                        Toast.makeText(requireContext(), "동물 병원이 표시되지 않는 거리입니다.", Toast.LENGTH_SHORT).show()
+                        deleteAllHospital()
+                        lastCallHospital?.cancel()
+                    }
+                    zoomLevel = kakaoMap.zoomLevel
+
                     getMarkers()
                 }
             }
@@ -153,7 +194,6 @@ class MapFragment : Fragment() {
 
         return viewOfLayout
     }
-
 
     fun getCurrentLocation() {
         try {
@@ -213,46 +253,57 @@ class MapFragment : Fragment() {
     fun showDisease(pos: LatLng) {
         lastCallDisease?.cancel() //이전 요청은 취소한다.
 
-        //diseaseListManager.setData("지역을 불러오는 중입니다.", ArrayList<DiseaseListItemData>())
-        diseaseListManager.show(supportFragmentManager, diseaseListManager.tag)
+        if(filterOption.selectedIndex != 2) {
+//diseaseListManager.setData("지역을 불러오는 중입니다.", ArrayList<DiseaseListItemData>())
+            diseaseListManager.show(supportFragmentManager, diseaseListManager.tag)
 
-        lastCallDisease = NetworkManager.apiService.getDiseaseData(pos.latitude, pos.longitude, kakaoMap.zoomLevel)
-        lastCallDisease?.enqueue(object : Callback<DiseaseListResponse> {
-            override fun onResponse(call: Call<DiseaseListResponse>, response: Response<DiseaseListResponse>) {
-                if(call.isCanceled) {
-                    Log.e("Network", "취소된 요청입니다.")
-                    return
+            lastCallDisease = NetworkManager.apiService.getDiseaseData(
+                pos.latitude,
+                pos.longitude,
+                kakaoMap.zoomLevel,
+                when(filterAnimal.selectedIndex) {
+                    0 -> "all"
+                    1 -> "chicken"
+                    2 -> "cow"
+                    3 -> "pig"
+                    else -> "all"
+                })
+            lastCallDisease?.enqueue(object : Callback<DiseaseListResponse> {
+                override fun onResponse(call: Call<DiseaseListResponse>, response: Response<DiseaseListResponse>) {
+                    if(call.isCanceled) {
+                        Log.e("Network", "취소된 요청입니다.")
+                        return
+                    }
+
+                    if (!response.isSuccessful) {
+                        Log.e("Network", "요청에 실패했습니다.")
+                        return
+                    }
+
+                    val data = response.body()!!.data
+                    if(data.diseaseList.isEmpty()) { //현재 요청이 이전 요청이거나 목록이 비어있으면 더 진행하지 않는다
+                        diseaseListManager.dismiss()
+                        toast?.cancel()
+                        toast = Toast.makeText(requireContext(), "해당 지역은 질병 발생 정보가 없습니다.", Toast.LENGTH_SHORT)
+                        toast?.show()
+                        return
+                    }
+
+                    diseaseListManager.setData(buildString {
+                        append(data.address)
+                        append("의 질병 발생 현황")
+                    }, data.diseaseList)
+
+                    lastCallDisease = null //요청 처리 완료되었으니 비워준다.
                 }
 
-                if (!response.isSuccessful) {
-                    Log.e("Network", "요청에 실패했습니다.")
-                    return
+                override fun onFailure(call: Call<DiseaseListResponse>, t: Throwable) {
+                    //오류 처리
+                    Log.e("Network", "요청에 실패했습니다. $t")
+                    lastCallDisease = null //요청 처리 완료되었으니 비워준다.
                 }
-
-                val data = response.body()!!.data
-                if(data.diseaseList.isEmpty()) { //현재 요청이 이전 요청이거나 목록이 비어있으면 더 진행하지 않는다
-                    diseaseListManager.dismiss()
-                    toast?.cancel()
-                    toast = Toast.makeText(requireContext(), "해당 지역은 질병 발생 정보가 없습니다.", Toast.LENGTH_SHORT)
-                    toast?.show()
-                    return
-                }
-
-                diseaseListManager.setData(buildString {
-                    append(data.address)
-                    append("의 질병 발생 현황")
-                }, data.diseaseList)
-
-                lastCallDisease = null //요청 처리 완료되었으니 비워준다.
-            }
-
-            override fun onFailure(call: Call<DiseaseListResponse>, t: Throwable) {
-                //오류 처리
-                Log.e("Network", "요청에 실패했습니다. $t")
-
-                lastCallDisease = null //요청 처리 완료되었으니 비워준다.
-            }
-        })
+            })
+        }
     }
 
     fun getMarkers() {
@@ -261,9 +312,22 @@ class MapFragment : Fragment() {
         val rightTop = kakaoMap.fromScreenPoint(mapView.width, 0)!!    //제일 높음
         val leftBottom = kakaoMap.fromScreenPoint(0, mapView.height)!! //제일 낮음
 
-        lastCallClustering?.cancel()
-        lastCallClustering = NetworkManager.apiService.getClusteredData(leftBottom.latitude, leftBottom.longitude, rightTop.latitude, rightTop.longitude, kakaoMap.zoomLevel)
-        lastCallClustering?.enqueue(object : Callback<ClusteringResponse> {
+        if(filterOption.selectedIndex != 2) {
+            lastCallClustering?.cancel()
+            lastCallClustering = NetworkManager.apiService.getClusteredData(
+                leftBottom.latitude,
+                leftBottom.longitude,
+                rightTop.latitude,
+                rightTop.longitude,
+                kakaoMap.zoomLevel,
+                when(filterAnimal.selectedIndex) {
+                    0 -> "all"
+                    1 -> "chicken"
+                    2 -> "cow"
+                    3 -> "pig"
+                    else -> "all"
+                })
+            lastCallClustering?.enqueue(object : Callback<ClusteringResponse> {
                 override fun onResponse(call: Call<ClusteringResponse>, response: Response<ClusteringResponse>) {
                     if(call.isCanceled) return
                     if(!response.isSuccessful) return
@@ -286,10 +350,10 @@ class MapFragment : Fragment() {
 
                         //val text = GuiText("InfoWindow!")
                         val text = GuiText(
-                                    "${
-                                        item.addressName.split(" ").last()
-                                    } ${item.totalOccurCount}"
-                                )
+                            "${
+                                item.addressName.split(" ").last()
+                            } ${item.totalOccurCount}"
+                        )
                         text.setTextSize(30)
                         body.addView(text)
 
@@ -307,16 +371,20 @@ class MapFragment : Fragment() {
                         layer.remove(infoWindow)
                     }
                     subList.clear()
+                    lastCallClustering = null
                 }
 
                 override fun onFailure(call: Call<ClusteringResponse>, err: Throwable) {
                     Log.e("GetClusteredData Failed", "Network call failed: ${err.message}")
+                    lastCallClustering = null
                 }
             })
+        }
 
-        lastCallHospital?.cancel()
-        lastCallHospital = NetworkManager.apiService.getHospital(leftBottom.latitude, leftBottom.longitude, rightTop.latitude, rightTop.longitude)
-        lastCallHospital?.enqueue(object : Callback<HospitalResponse> {
+        if(filterOption.selectedIndex != 1 && kakaoMap.zoomLevel >= 14) {
+            lastCallHospital?.cancel()
+            lastCallHospital = NetworkManager.apiService.getHospital(leftBottom.latitude, leftBottom.longitude, rightTop.latitude, rightTop.longitude)
+            lastCallHospital?.enqueue(object : Callback<HospitalResponse> {
                 override fun onResponse(call: Call<HospitalResponse>, response: Response<HospitalResponse>) {
                     if(call.isCanceled) return
                     if (!response.isSuccessful) return
@@ -326,11 +394,13 @@ class MapFragment : Fragment() {
                     val layer = kakaoMap.labelManager!!.layer!!
 
                     response.body()!!.hospitals.forEach { item ->
-                        val styles = kakaoMap.labelManager!!.addLabelStyles(LabelStyles.from(LabelStyle.from(com.hci.chatbot.R.drawable.vaccines_24dp)))
+                        val styles = kakaoMap.labelManager!!.addLabelStyles(LabelStyles.from(LabelStyle.from(R.drawable.hospital_marker_128px)))
                         val options = LabelOptions.from(LatLng.from(item.latitude, item.longitude)).setStyles(styles)
 
+                        val label = layer.addLabel(options)
+                        label.tag = item
 
-                        hospitalLabels.add(layer.addLabel(options))
+                        hospitalLabels.add(label)
                     }
 
                     //이전에 생성된 부분만 제거
@@ -339,16 +409,38 @@ class MapFragment : Fragment() {
                         layer.remove(label)
                     }
                     subList.clear()
+                    lastCallHospital = null
                 }
 
                 override fun onFailure(call: Call<HospitalResponse>, err: Throwable) {
                     Log.e("GetHospital Failed", "Network call failed: ${err.message}")
+                    lastCallHospital = null
                 }
             })
+        }
+    }
+
+    fun deleteAllMarker(){
+        val layer = kakaoMap.mapWidgetManager!!.infoWindowLayer
+        infoWindows.forEach { item ->
+            layer.remove(item)
+        }
+        infoWindows.clear()
+    }
+
+    fun deleteAllHospital(){
+        val layer = kakaoMap.labelManager!!.layer!!
+        hospitalLabels.forEach { item ->
+            layer.remove(item)
+        }
+        hospitalLabels.clear()
     }
 
     override fun onResume() {
         super.onResume()
+        if(mapView == null) {
+
+        }
         mapView.resume() // MapView 의 resume 호출
     }
 

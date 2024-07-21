@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="filter_animals">
+        <item>전체 동물</item>
+        <item>닭</item>
+        <item>소</item>
+        <item>돼지</item>
+    </string-array>
+
+    <string-array name="filter_option">
+        <item>전염병 및 병원</item>
+        <item>전염병만</item>
+        <item>병원만</item>
+    </string-array>
+</resources>

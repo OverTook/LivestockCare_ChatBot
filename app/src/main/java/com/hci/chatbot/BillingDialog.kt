@@ -4,9 +4,12 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -41,6 +44,10 @@ class BillingDialog(context: Context, private val activity: Activity) : Dialog(c
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        window?.requestFeature(Window.FEATURE_NO_TITLE)
+
         setContentView(R.layout.billing_popup)
 
         // Dialog를 전체 화면으로 설정
@@ -98,7 +105,7 @@ class BillingDialog(context: Context, private val activity: Activity) : Dialog(c
                         }
 
                         override fun onFailure(call: Call<ValidReceptionResponse>, err: Throwable) {
-                            Snackbar.make(activity!!.findViewById(R.id.main), "영수증 검증을 진행하지 못하였습니다.", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(activity.findViewById(R.id.main), "영수증 검증을 진행하지 못하였습니다.", Snackbar.LENGTH_LONG).show();
                         }
                     })
                 }

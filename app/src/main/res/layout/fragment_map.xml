@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -45,6 +46,53 @@
         android:layout_gravity="bottom"
         android:visibility="gone" />
 
+    <com.skydoves.powerspinner.PowerSpinnerView
+        android:id="@+id/filter_animal"
+        android:layout_width="110dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="#FFFFFF"
+        android:gravity="center"
+        android:hint="전체 동물"
+        android:padding="10dp"
+        android:textColor="#000000"
+        android:textColorHint="#000000"
+        android:textSize="14.5sp"
+        app:spinner_arrow_gravity="end"
+        app:spinner_arrow_padding="8dp"
+        app:spinner_arrow_tint="#000000"
+        app:spinner_divider_color="#9B9B9B"
+        app:spinner_divider_show="true"
+        app:spinner_divider_size=".6dp"
+        app:spinner_item_array="@array/filter_animals"
+        app:spinner_item_height="46dp"
+        app:spinner_popup_animation="fade"
+        app:spinner_popup_background="#F0F0F0"
+        app:spinner_popup_elevation="14dp" />
 
+    <com.skydoves.powerspinner.PowerSpinnerView
+        android:id="@+id/filter_option"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="10dp"
+        android:background="#FFFFFF"
+        android:gravity="center"
+        android:hint="전염병 및 병원"
+        android:padding="10dp"
+        android:textColor="#000000"
+        android:textColorHint="#000000"
+        android:textSize="14.5sp"
+        app:spinner_arrow_gravity="end"
+        app:spinner_arrow_padding="8dp"
+        app:spinner_arrow_tint="#000000"
+        app:spinner_divider_color="#9B9B9B"
+        app:spinner_divider_show="true"
+        app:spinner_divider_size=".6dp"
+        app:spinner_item_array="@array/filter_option"
+        app:spinner_item_height="46dp"
+        app:spinner_popup_animation="fade"
+        app:spinner_popup_background="#F0F0F0"
+        app:spinner_popup_elevation="14dp" />
 
 </FrameLayout>

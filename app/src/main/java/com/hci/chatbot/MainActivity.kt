@@ -29,6 +29,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
+import com.hci.chatbot.network.NetworkManager
 import com.hci.chatbot.tab.ChatFragment
 import com.hci.chatbot.tab.MapFragment
 import com.hci.chatbot.tab.ViewPagerAdapter
@@ -44,7 +45,10 @@ class MainActivity : AppCompatActivity() {
     private var mAuth: FirebaseAuth? = null
 
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var activityResultLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var locationPermissionLauncher: ActivityResultLauncher<Array<String>>
+
+    private lateinit var callPermissionLauncher: ActivityResultLauncher<String>
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         tabLayoutInit()
         sidebarInit()
 
-        activityResultLauncher = registerForActivityResult(
+        locationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()) {
             if(it[Manifest.permission.ACCESS_COARSE_LOCATION]!! && !it[Manifest.permission.ACCESS_FINE_LOCATION]!!) {
                 //대략적 위치
@@ -184,7 +188,7 @@ class MainActivity : AppCompatActivity() {
                     } else if(viewPager.currentItem == 0) {
                         if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
                             != PackageManager.PERMISSION_GRANTED) {
-                            activityResultLauncher.launch(arrayOf(
+                            locationPermissionLauncher.launch(arrayOf(
                                 Manifest.permission.ACCESS_FINE_LOCATION,
                                 Manifest.permission.ACCESS_COARSE_LOCATION)
                             )
@@ -272,11 +276,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if(mAuth!!.currentUser == null) {
-            startActivity(
-                Intent(this@MainActivity,
-                LoginActivity::class.java)
-            )
+        if(mAuth!!.currentUser == null || !NetworkManager.isInitialized) {
+            finish()
         }
     }
 

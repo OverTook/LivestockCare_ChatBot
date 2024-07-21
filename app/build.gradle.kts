@@ -67,6 +67,7 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.github.mreram:showcaseview:1.4.1")
+    implementation("com.github.skydoves:powerspinner:1.2.7")
     implementation(libs.play.services.location)
 
     testImplementation(libs.junit)

@@ -11,7 +11,7 @@
                 <item
                     android:id="@+id/purchase_btn"
                     android:checked="true"
-                    android:icon="@android:drawable/ic_dialog_alert"
+                    android:icon="@drawable/credit_card_24px"
                     android:title="정기 결제" />
             </menu>
         </item>
@@ -27,7 +27,7 @@
             <menu>
                 <item
                     android:id="@+id/terms_btn"
-                    android:icon="@drawable/sharp_info_24"
+                    android:icon="@drawable/folder_shared_24px"
                     android:title="개인정보처리방침" />
 
             </menu>
@@ -45,17 +45,17 @@
             <menu>
                 <item
                     android:id="@+id/inquire_btn"
-                    android:icon="@drawable/sharp_info_24"
+                    android:icon="@drawable/help_24px"
                     android:title="문의" />
 
                 <item
                     android:id="@+id/info_btn"
-                    android:icon="@drawable/input_send_button"
+                    android:icon="@drawable/info_24px"
                     android:title="앱 정보" />
 
                 <item
                     android:id="@+id/navView_logout"
-                    android:icon="@drawable/input_send_button"
+                    android:icon="@drawable/logout_24px"
                     android:title="로그아웃" />
 
             </menu>

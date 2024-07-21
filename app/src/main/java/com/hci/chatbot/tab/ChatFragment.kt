@@ -111,6 +111,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
             override fun onFailure(call: Call<ValidChatCountResponse>, err: Throwable) {
                 setChatCount()
                 Snackbar.make(activity!!.findViewById(R.id.main), "일일 대화 횟수를 받아올 수 없습니다.", Snackbar.LENGTH_LONG).show();
+                Log.e("Valid Chat Count Error", err.toString())
             }
         })
     }
@@ -292,8 +293,8 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
     private lateinit var job: Job
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onPause() {
+        super.onPause()
         job.cancel()
     }
 
