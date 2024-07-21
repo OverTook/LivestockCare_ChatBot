@@ -105,6 +105,7 @@
             android:layout_above="@+id/relativeLayout"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="false"
+            android:layout_marginTop="40dp"
             android:layout_marginBottom="20dp"
             android:elevation="5dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"

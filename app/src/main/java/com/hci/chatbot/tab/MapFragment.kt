@@ -94,6 +94,11 @@ class MapFragment : Fragment() {
         viewOfLayout = inflater.inflate(R.layout.fragment_map, container, false)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        locationRequest = LocationRequest.Builder(5000)
+            .setIntervalMillis(5000)
+            .setMinUpdateIntervalMillis(1000)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .build()
 
         sharedPreferenceManager = SharedPreferenceManager(requireActivity())
         if(sharedPreferenceManager.getFirstCheckMap()) {
@@ -113,7 +118,7 @@ class MapFragment : Fragment() {
                 kakaoMap.logo!!.setPosition(0, 15f, mapView.height.toFloat() - 50);
 
                 if(!tutorialUtil.mapTutorialing) {
-                    initGPS()
+                    getCurrentLocation()
                 }
 
                 kakaoMap.setOnViewportClickListener(object : KakaoMap.OnViewportClickListener {
@@ -147,16 +152,6 @@ class MapFragment : Fragment() {
         diseaseListManager = BottomSheetList()
 
         return viewOfLayout
-    }
-
-    fun initGPS() {
-        locationRequest = LocationRequest.Builder(5000)
-            .setIntervalMillis(5000)
-            .setMinUpdateIntervalMillis(1000)
-            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-            .build()
-
-        getCurrentLocation()
     }
 
 

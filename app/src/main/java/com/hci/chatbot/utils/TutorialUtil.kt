@@ -253,7 +253,7 @@ class TutorialUtil private constructor() {
                     .show()
             }
             9 -> {
-                (rootView.tag as MapFragment).initGPS()
+                (rootView.tag as MapFragment).getCurrentLocation()
 
                 GuideView.Builder(activity)
                     .setTitle(activity.getString(R.string.tutorial_map_seq_9_title))
