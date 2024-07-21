@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
@@ -27,6 +28,7 @@ import com.hci.chatbot.network.HistoryData
 import com.hci.chatbot.network.NetworkManager
 import com.hci.chatbot.network.ValidChatCountResponse
 import com.hci.chatbot.utils.SharedPreferenceManager
+import com.hci.chatbot.utils.TutorialUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -43,27 +45,32 @@ import java.util.Locale
 
 class ChatFragment : Fragment(), View.OnClickListener {
 
-    private val dataList: ArrayList<Item> = ArrayList()
-    private lateinit var sharedPreferenceManager: SharedPreferenceManager
+    private val tutorialUtil = TutorialUtil.getInstance()
 
     private var waitForResponse: Boolean = false
     private var chatHistory: ArrayList<HistoryData> = ArrayList()
-
-    private lateinit var imm: InputMethodManager
-    private lateinit var viewOfLayout: View
-    private lateinit var adapter: CustomAdapter
-
     private var startedChat: Boolean = false
-
     private var maxChatCount: Int = -2
     private var curChatCount: Int = -2
+
+    private lateinit var sharedPreferenceManager: SharedPreferenceManager
+    private lateinit var imm: InputMethodManager
+
+    lateinit var recyclerView: RecyclerView
+    lateinit var viewOfLayout: View
+    lateinit var adapter: CustomAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         viewOfLayout = inflater.inflate(R.layout.fragment_chat, container, false);
+
+        sharedPreferenceManager = SharedPreferenceManager(requireActivity())
+        if(sharedPreferenceManager.getFirstCheckChat()) {
+            tutorialUtil.chatTutorialing = true
+        }
 
         val maskView: View = viewOfLayout.findViewById(R.id.mask_view)
         maskView.setOnClickListener(this)
@@ -75,7 +82,6 @@ class ChatFragment : Fragment(), View.OnClickListener {
         anim.setOnClickListener(this)
 
         job = Job()
-        sharedPreferenceManager = SharedPreferenceManager(requireActivity())
         getValidChatCount()
 
         return viewOfLayout
@@ -112,11 +118,19 @@ class ChatFragment : Fragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val recyclerView: RecyclerView = viewOfLayout.findViewById(R.id.chat_list_recycler)
+        recyclerView = viewOfLayout.findViewById(R.id.chat_list_recycler)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        adapter = CustomAdapter(dataList, recyclerView)
+        adapter = CustomAdapter(ArrayList(), recyclerView)
         recyclerView.setAdapter(adapter)
+
+        if(tutorialUtil.chatTutorialing) {
+            adapter.addItem(Item(getString(R.string.tutorial_chat_seq_0_prompt_0), getCurrentTime(), ViewType.RIGHT_CHAT, false))
+            adapter.addItem(Item("", "", ViewType.WAIT_MSG, false))
+            adapter.addItem(Item(getString(R.string.tutorial_chat_seq_0_prompt_1), getCurrentTime(), ViewType.LEFT_CHAT, false))
+        }
+
+
 
         imm = requireActivity().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
@@ -147,8 +161,6 @@ class ChatFragment : Fragment(), View.OnClickListener {
             }
             false
         })
-
-
     }
 
     private fun sendAndWait(msg: String) {
@@ -163,7 +175,9 @@ class ChatFragment : Fragment(), View.OnClickListener {
         }
 
         startedChat = true
-        adapter.addItem(Item(msg, getCurrentTime(), ViewType.RIGHT_CHAT))
+        adapter.addItem(Item(msg, getCurrentTime(), ViewType.RIGHT_CHAT, true))
+        adapter.addItem(Item("", "", ViewType.WAIT_MSG, true))
+
         waitForResponse = true
         NetworkManager.apiService.chat(ChatRequest(msg, chatHistory)).enqueue(object :
             Callback<ChatResponse> {
@@ -171,7 +185,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
                 waitForResponse = false
 
                 if(!response.isSuccessful) {
-                    adapter.addItem(Item("요청이 올바르지 않습니다.", getCurrentTime(), ViewType.LEFT_CHAT))
+                    adapter.removeLastAndAddItem(Item("요청이 올바르지 않습니다.", getCurrentTime(), ViewType.LEFT_CHAT, true))
                     return
                 }
 
@@ -179,7 +193,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
                 chatHistory = body.history as ArrayList<HistoryData>
 
-                adapter.addItem(Item(body.msg, getCurrentTime(), ViewType.LEFT_CHAT))
+                adapter.removeLastAndAddItem(Item(body.msg, getCurrentTime(), ViewType.LEFT_CHAT, true))
 
                 curChatCount--
                 setChatCount()
@@ -188,7 +202,8 @@ class ChatFragment : Fragment(), View.OnClickListener {
             }
 
             override fun onFailure(call: Call<ChatResponse>, err: Throwable) {
-                adapter.addItem(Item("서버 연결에 실패하였습니다.", getCurrentTime(), ViewType.LEFT_CHAT))
+                adapter.removeLastAndAddItem(Item("서버 연결에 실패하였습니다.", getCurrentTime(), ViewType.LEFT_CHAT, true))
+                waitForResponse = false
             }
 
         })
@@ -232,10 +247,11 @@ class ChatFragment : Fragment(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         //버튼으로 보내는 부분
-        Log.e("WHO", v!!.id.toString())
         when (v!!.id) {
             R.id.chat_send_btn -> {
                 imm.hideSoftInputFromWindow(requireView().windowToken, 0)
+
+                if(tutorialUtil.chatTutorialing) return
 
                 val input: EditText = viewOfLayout.findViewById(R.id.chat_input)
                 if(input.text.isNullOrBlank()) {
@@ -260,6 +276,8 @@ class ChatFragment : Fragment(), View.OnClickListener {
                 imm.showSoftInput(viewOfLayout.findViewById<EditText>(R.id.chat_input), android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
             }
             R.id.hello_animation -> {
+                if(tutorialUtil.chatTutorialing) return
+
                 if(curChatCount <= 0) {
                     Snackbar.make(viewOfLayout.findViewById(R.id.main), "금일 챗봇 이용 횟수가 소진되었습니다.", Snackbar.LENGTH_LONG)
                         .setAnchorView(viewOfLayout.findViewById(R.id.chat_input_background))

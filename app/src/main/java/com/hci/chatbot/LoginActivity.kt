@@ -42,6 +42,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.KakaoSdk
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
+import com.kakao.sdk.common.util.Utility
 import com.kakao.sdk.user.UserApiClient
 import com.kakao.vectormap.KakaoMapSdk
 import kotlinx.coroutines.Job
@@ -70,6 +71,8 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         KakaoMapSdk.init(this, "4970ef36f0902a772d347b75b15e8907");
         KakaoSdk.init(this, "4970ef36f0902a772d347b75b15e8907");
+
+        Log.e("Kakao Key Hash", Utility.getKeyHash(this))
 
         FirebaseApp.initializeApp(this);
         mAuth = FirebaseAuth.getInstance()
@@ -103,6 +106,7 @@ class LoginActivity : AppCompatActivity() {
             val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
                 if (error != null) {
                     this.hideDarkOverlay()
+                    Log.e("Kakao Login", "카카오계정으로 로그인 실패", error)
                     Snackbar.make(findViewById(R.id.main), "로그인에 실패하였습니다.", Snackbar.LENGTH_LONG).show()
                 } else if (token != null) {
                     //아래처럼 조작이 가능해진다는 문제점을 해결
@@ -206,6 +210,7 @@ class LoginActivity : AppCompatActivity() {
                     Snackbar.make(findViewById(R.id.main), "오류가 발생하여 다른 방법으로 재시도합니다.", Snackbar.LENGTH_LONG).show()
                     return@launch
                 }
+                oldGoogleLoginjob?.cancel()
                 Snackbar.make(findViewById(R.id.main), "로그인에 실패했습니다.", Snackbar.LENGTH_LONG).show()
             }
         }

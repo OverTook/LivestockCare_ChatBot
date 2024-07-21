@@ -1,6 +1,8 @@
 package com.hci.chatbot.chatui
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,24 +12,25 @@ import com.hci.chatbot.R
 
 class CustomAdapter(private val myDataList: ArrayList<Item>, private val recyclerView: RecyclerView) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var waitMessage = false
     fun addItem(item: Item) {
-        if(waitMessage) {
-            waitMessage = false
-            myDataList.removeAt(myDataList.size - 1)
-            myDataList.add(item)
-            this.notifyItemChanged(myDataList.size - 1)
-            recyclerView.smoothScrollToPosition(myDataList.size - 1)
-            return
-        }
-
         myDataList.add(item)
-        this.notifyItemInserted(myDataList.size - 1)
-        waitMessage = true
-        myDataList.add(Item("", "", ViewType.WAIT_MSG))
         this.notifyItemInserted(myDataList.size - 1)
         recyclerView.smoothScrollToPosition(myDataList.size - 1)
     }
+
+    fun removeLastAndAddItem(item: Item) {
+        myDataList.removeAt(myDataList.size - 1)
+        myDataList.add(item)
+        this.notifyItemChanged(myDataList.size - 1)
+        recyclerView.smoothScrollToPosition(myDataList.size - 1)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun clearItems() {
+        myDataList.clear()
+        this.notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val view: View
         val context = parent.context
@@ -50,14 +53,21 @@ class CustomAdapter(private val myDataList: ArrayList<Item>, private val recycle
     }
 
     override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
+        val item = myDataList[position]
+        if(!item.visible) {
+            viewHolder.itemView.visibility = View.GONE
+        } else {
+            viewHolder.itemView.visibility = View.VISIBLE
+        }
+
         when (viewHolder) {
             is LeftViewHolder -> {
-                viewHolder.content.text = myDataList[position].content
-                viewHolder.time.text = myDataList[position].time
+                viewHolder.content.text = item.content
+                viewHolder.time.text = item.time
             }
             is RightViewHolder -> {
-                viewHolder.content.text = myDataList[position].content
-                viewHolder.time.text = myDataList[position].time
+                viewHolder.content.text = item.content
+                viewHolder.time.text = item.time
             }
         }
     }

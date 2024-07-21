@@ -8,11 +8,13 @@ import retrofit2.http.Query
 
 interface PostInterface {
 
-    @GET("/get_center_addr")
-    fun getCenterAddr(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("level") level: Int): Call<CenterAddrResponse>
+    @GET("/get_hospital")
+    fun getHospital(@Query("lat_from") latFrom: Double, @Query("lng_from") lngFrom: Double,
+                         @Query("lat_to") latTo: Double, @Query("lng_to") lngTo: Double): Call<HospitalResponse>
 
     @GET("/get_disease_clustering")
-    fun getClusteredData(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("level") level: Int): Call<ClusteringResponse>
+    fun getClusteredData(@Query("lat_from") latFrom: Double, @Query("lng_from") lngFrom: Double,
+                         @Query("lat_to") latTo: Double, @Query("lng_to") lngTo: Double, @Query("level") level: Int): Call<ClusteringResponse>
 
     @GET("/get_occur_disease_list")
     fun getDiseaseData(@Query("lat") lat: Double, @Query("lng") lng: Double, @Query("level") level: Int): Call<DiseaseListResponse>

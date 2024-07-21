@@ -1,4 +1,62 @@
 <resources>
     <string name="app_name">KUVet</string>
     <string name="google_sdk_id">1055857473102-kqe41bm0u9a151ilvuqh1nu3kmfv3n38.apps.googleusercontent.com</string>
+
+    <string name="receiving_data">데이터를 받아오는 중입니다.</string>
+    <string name="no_disease_at_area">해당 지역은 질병 발생 정보가 없습니다.</string>
+    <string name="tutorial_map_example_area_text">예시 구역의 질병 발생 현황</string>
+
+    <string name="tutorial_map_seq_0_title">가축 전염병 지도</string>
+    <string name="tutorial_map_seq_0_body">본 지도는 소, 돼지, 닭 등 가축의 전염병 발생 현황을 원하는 지역 별로 제공하는 지도 서비스입니다.</string>
+    <string name="tutorial_map_seq_1_title">가축 전염병 목록 조회</string>
+    <string name="tutorial_map_seq_1_body">지도의 한 영역을 클릭하여 해당 영역에 발생한 가축 전염병 목록을 조회할 수 있습니다.\n해당 영역을 눌러보세요.</string>
+    <string name="tutorial_map_seq_2_title">데이터 수신</string>
+    <string name="tutorial_map_seq_2_body">해당 지역에 대한 데이터를 받아오게 되며, 이 동안 잠시 기다리거나 한 번 더 눌러 취소할 수 있습니다.\n본 가이드에서는 예시 데이터를 표시해드리겠습니다.</string>
+    <string name="tutorial_map_seq_3_title">가축 전염병 현황</string>
+    <string name="tutorial_map_seq_3_body">해당 지역에 가축 전염병이 발병한 경우 아래와 같이 전염병 목록이 자세히 표시되게 됩니다.</string>
+    <string name="tutorial_map_seq_4_title">가축 전염병 목록 조회</string>
+    <string name="tutorial_map_seq_4_body">이번에는 데이터 요청 중 취소 작업을 해보겠습니다.\n다시 해당 영역을 눌러보세요.</string>
+    <string name="tutorial_map_seq_5_title">데이터 수신</string>
+    <string name="tutorial_map_seq_5_body">이전과 마찬가지로 해당 영역에 대한 데이터를 조회하게 됩니다. 데이터를 조회하는 중 취소 작업을 해보겠습니다.</string>
+    <string name="tutorial_map_seq_6_title">작업 취소</string>
+    <string name="tutorial_map_seq_6_body">잘하셨습니다!\n이는 이전에 빈 공간을 클릭함으로써 작업이 취소된 것입니다.</string>
+    <string name="tutorial_map_seq_7_title">가축 전염병 목록 조회</string>
+    <string name="tutorial_map_seq_7_body">마지막으로 가축 전염병이 발생하지 않은 경우의 결과를 보겠습니다.\n다시 해당 영역을 눌러보세요.</string>
+    <string name="tutorial_map_seq_8_title">데이터 수신</string>
+    <string name="tutorial_map_seq_8_body">이전과 마찬가지로 해당 영역에 대한 데이터를 조회하게 됩니다.\n이번에는 데이터가 없다는 메시지를 표시해보겠습니다.</string>
+    <string name="tutorial_map_seq_9_title">가이드 완료</string>
+    <string name="tutorial_map_seq_9_body">잘하셨습니다!\n이로써 모든 가이드가 완료되었습니다.\n감사합니다.</string>
+
+    <string name="tutorial_chat_seq_0_title">가축 건강 관리 챗봇</string>
+    <string name="tutorial_chat_seq_0_body">본 챗봇은 가축의 의심 증상과 관련된 질병, 그리고 그 질병에 알맞는 의약품을 나열해주는 챗봇 서비스입니다.</string>
+    <string name="tutorial_chat_seq_1_title">인사로 대화 시작</string>
+    <string name="tutorial_chat_seq_1_body">본 챗봇과 대화를 시작할 때 중앙의 이모티콘을 통해 인사할 수 있습니다.\n중앙의 이모티콘을 눌러주세요.</string>
+    <string name="tutorial_chat_seq_2_title">대화 전송</string>
+    <string name="tutorial_chat_seq_2_body">이와 같이 이모티콘을 통해 챗봇과 기본적인 인사를 주고받아 대화를 시작할 수 있습니다.</string>
+    <string name="tutorial_chat_seq_3_title">응답 대기</string>
+    <string name="tutorial_chat_seq_3_body">이와 같이 메시지를 전송하게 되면 챗봇이 응답을 생성하게 되며, 생성하는 동안 이와 같은 효과가 나타납니다.</string>
+    <string name="tutorial_chat_seq_4_title">답변 표시</string>
+    <string name="tutorial_chat_seq_4_body">챗봇이 응답을 생성하면 기존 효과가 사라지고 응답이 표시되게 됩니다.</string>
+    <string name="tutorial_chat_seq_5_title">대화 시작</string>
+    <string name="tutorial_chat_seq_5_body">하지만, 인사도 대화 횟수로 간주되기 때문에 하루 5번밖에 이용할 수 없는 무료 계정의 경우 하단의 입력란을 통해 본론을 말하는 것이 좋을 수 있습니다.\n우선, 예시로 소가 아프다고 말해보도록 하겠습니다.</string>
+    <string name="tutorial_chat_seq_6_title">대화 전송</string>
+    <string name="tutorial_chat_seq_6_body">대신 프롬프트를 입력해두었습니다. 우측의 전송 버튼을 눌러 해당 내용을 전송해보세요.</string>
+    <string name="tutorial_chat_seq_7_title">대화 진행</string>
+    <string name="tutorial_chat_seq_7_body">좋습니다!\n이렇게 즉시 증상을 말해도 대화를 잘 진행할 수 있습니다. 그렇다면 조금 더 대화를 진행해보겠습니다.</string>
+    <string name="tutorial_chat_seq_8_title">대화 마무리</string>
+    <string name="tutorial_chat_seq_8_body">이렇게 대화를 해보았습니다.\n본 가이드에서는 보다 자세히 보여드리기 위하여 단계별로 진행하였습니다.</string>
+    <string name="tutorial_chat_seq_9_title">더 좋은 대화 방법</string>
+    <string name="tutorial_chat_seq_9_body">하지만 하루 5번밖에 이용할 수 없는 무료 계정의 경우\n\'소가 아파요. 기침을 하는 것 같아요.\' 와 같이 한 번에 말하는 것이 좋을 수 있습니다.</string>
+    <string name="tutorial_chat_seq_10_title">더 좋은 대화 방법</string>
+    <string name="tutorial_chat_seq_10_body">또한 많은 정보가 학습된 만큼 더 자세하고 정확하고 많은 정보를 제공해주신다면 그 만큼 높은 정확성을 보일 것입니다.</string>
+    <string name="tutorial_chat_seq_11_title">가이드 완료</string>
+    <string name="tutorial_chat_seq_11_body">이로써 모든 가이드가 완료되었습니다.\n감사합니다.</string>
+
+    <string name="tutorial_chat_seq_0_prompt_0">안녕하세요!</string>
+    <string name="tutorial_chat_seq_0_prompt_1">안녕하세요.</string>
+
+    <string name="tutorial_chat_seq_6_prompt_0">소가 아파요.</string>
+    <string name="tutorial_chat_seq_6_prompt_1">소가 아픈 것 같네요. 증상을 좀 더 자세히 알려주시겠어요? 기침, 구토, 설사, 발열 등 다른 증상이 있는지 확인해주세요. 그러면 어떤 병명인지 알려드릴게요.</string>
+    <string name="tutorial_chat_seq_6_prompt_2">기침을 하는 것 같아요.</string>
+    <string name="tutorial_chat_seq_6_prompt_3">소가 기침을 하고 있는 것 같네요. 이는 호흡기 질환의 가능성이 있습니다. 인플루엔자 A형 바이러스로 인한 호흡기 질환일 수 있어요. 증상이 지속되면 적절한 항생제 치료가 필요할 수 있어요. 예방을 위해 백신 접종을 권장하며, 더 자세한 진단을 위해 수의사를 방문하는 것이 좋겠어요.</string>
 </resources>

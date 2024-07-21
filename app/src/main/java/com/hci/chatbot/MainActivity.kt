@@ -1,16 +1,22 @@
 package com.hci.chatbot
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewTreeObserver
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -18,13 +24,17 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
+import com.hci.chatbot.tab.ChatFragment
+import com.hci.chatbot.tab.MapFragment
 import com.hci.chatbot.tab.ViewPagerAdapter
 import com.hci.chatbot.utils.DoubleBackPressHandler
 import com.hci.chatbot.utils.SharedPreferenceManager
+import com.hci.chatbot.utils.TutorialUtil
 
 
 class MainActivity : AppCompatActivity() {
@@ -34,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     private var mAuth: FirebaseAuth? = null
 
     private lateinit var drawerLayout: DrawerLayout
-
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Array<String>>
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,69 +59,22 @@ class MainActivity : AppCompatActivity() {
 
         mAuth = FirebaseAuth.getInstance()
 
-        val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
-        val adapter = ViewPagerAdapter(this)
+        tabLayoutInit()
+        sidebarInit()
 
-        val viewPager = findViewById<ViewPager2>(R.id.viewPager)
-        viewPager.adapter = adapter
-        viewPager.reduceDragSensitivity() //감도 조절
-
-
-        TabLayoutMediator(
-            tabLayout, viewPager
-        ) { tab, position ->
-            when (position) {
-                0 -> tab.setText("               MAP               ") //일부러 공백을 줌
-                1 -> tab.setText("              CHAT              ")
+        activityResultLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()) {
+            if(it[Manifest.permission.ACCESS_COARSE_LOCATION]!! && !it[Manifest.permission.ACCESS_FINE_LOCATION]!!) {
+                //대략적 위치
+                Snackbar.make(findViewById(R.id.main), "정확한 위치 정보를 받아올 수 없어 정확성이 떨어집니다.", Snackbar.LENGTH_SHORT).show()
             }
-        }.attach()
+            (supportFragmentManager.fragments[0] as MapFragment).getCurrentLocation()
+        }
 
-        tabLayout.getTabAt(1)!!.select() //처음 시작은 챗봇 상태
+        doubleBackPressHandler.enable(drawerLayout)
+    }
 
-        tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                viewPager.currentItem = tab.position
-                if (tab.position == 0) {
-                    viewPager.isUserInputEnabled = false //카카오맵 드래그를 위해
-                } else if (tab.position == 1) {
-                    viewPager.isUserInputEnabled = true
-                }
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab) {
-                //
-            }
-
-            override fun onTabReselected(tab: TabLayout.Tab) {
-                //
-            }
-        })
-
-        val root = findViewById<ConstraintLayout>(R.id.main);
-        root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            private var isKeyboardShowing = false
-
-            override fun onGlobalLayout() {
-                val rect = Rect()
-                root.getWindowVisibleDisplayFrame(rect)
-                val screenHeight = root.rootView.height
-                val keypadHeight = screenHeight - rect.bottom
-
-                // 키보드가 올라왔을 때
-                if (keypadHeight > screenHeight * 0.15) {
-                    if (!isKeyboardShowing) {
-                        isKeyboardShowing = true
-                        viewPager.isUserInputEnabled = false //키보드가 올라와 있을 때에는 드래그 방지
-                    }
-                } else {
-                    if (isKeyboardShowing) {
-                        isKeyboardShowing = false
-                        viewPager.isUserInputEnabled = true //키보드가 사라졌으니 다시 드래그 허용
-                    }
-                }
-            }
-        })
-
+    fun sidebarInit() {
         drawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
         findViewById<ImageButton>(R.id.menu_btn).setOnClickListener {
@@ -164,10 +127,157 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
 
+    fun tabLayoutInit() {
+        val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
+        val adapter = ViewPagerAdapter(this)
 
+        val viewPager = findViewById<ViewPager2>(R.id.viewPager)
+        viewPager.adapter = adapter
+        viewPager.reduceDragSensitivity() //감도 조절
 
-        doubleBackPressHandler.enable(drawerLayout)
+        TabLayoutMediator(
+            tabLayout, viewPager
+        ) { tab, position ->
+            when (position) {
+                0 -> tab.setText("               MAP               ") //일부러 공백을 줌
+                1 -> tab.setText("              CHAT              ")
+            }
+        }.attach()
+
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    val fragment = supportFragmentManager.fragments[viewPager.currentItem]
+                    val tutorialUtil = TutorialUtil.getInstance()
+                    
+                    if(viewPager.currentItem == 1 && tutorialUtil.chatTutorialing) {
+                        findViewById<ImageButton>(R.id.menu_btn).isEnabled = false //메뉴 버튼 비활
+                        
+                        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED) //메뉴 스와이프 비활
+                        
+                        viewPager.isUserInputEnabled = false //스와이프 비활
+
+                        val tabStrip = (tabLayout.getChildAt(0) as LinearLayout)
+                        tabStrip.isEnabled = false //탭 메뉴 비활
+                        for (i in 0 until tabStrip.childCount) {
+                            tabStrip.getChildAt(i).isClickable = false //탭 메뉴 비활
+                        }
+
+                        fragment?.requireView()!!.tag = fragment as ChatFragment
+                        tutorialUtil.tutorialChat(this@MainActivity, fragment.requireView()) {
+                            findViewById<ImageButton>(R.id.menu_btn).isEnabled = true //메뉴 버튼
+
+                            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED) //메뉴 스와이프
+
+                            viewPager.isUserInputEnabled = true //스와이프
+
+                            tabStrip.isEnabled = true //탭 메뉴
+                            for (i in 0 until tabStrip.childCount) {
+                                tabStrip.getChildAt(i).isClickable = true //탭 메뉴
+                            }
+
+                            SharedPreferenceManager(this@MainActivity).saveFirstCheckChat()
+                        }
+                    } else if(viewPager.currentItem == 0) {
+                        if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                            activityResultLauncher.launch(arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION)
+                            )
+                        }
+                        if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                            Snackbar.make(findViewById(R.id.main), "정확한 위치 정보를 받아올 수 없어 정확성이 떨어집니다.", Snackbar.LENGTH_SHORT).show()
+                        }
+
+                        if(tutorialUtil.mapTutorialing) {
+                            findViewById<ImageButton>(R.id.menu_btn).isEnabled = false //메뉴 버튼 비활
+
+                            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED); //메뉴 스와이프 비활
+
+                            viewPager.isUserInputEnabled = false //스와이프 비활
+                            val tabStrip = (tabLayout.getChildAt(0) as LinearLayout)
+                            tabStrip.isEnabled = false //탭 메뉴 비활
+                            for (i in 0 until tabStrip.childCount) {
+                                tabStrip.getChildAt(i).isClickable = false //탭 메뉴 비활
+                            }
+
+                            fragment?.requireView()!!.tag = fragment as MapFragment
+                            tutorialUtil.tutorialMap(this@MainActivity, fragment.requireView()) {
+                                findViewById<ImageButton>(R.id.menu_btn).isEnabled = true //메뉴 버튼
+
+                                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED) //메뉴 스와이프
+
+                                //viewPager.isUserInputEnabled = true //지도에서는 스와이프는 활성화하면 안된다.
+
+                                tabStrip.isEnabled = true //탭 메뉴
+                                for (i in 0 until tabStrip.childCount) {
+                                    tabStrip.getChildAt(i).isClickable = true //탭 메뉴
+                                }
+
+                                SharedPreferenceManager(this@MainActivity).saveFirstCheckMap()
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        tabLayout.getTabAt(1)!!.select() //처음 시작은 챗봇 상태
+        tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                viewPager.currentItem = tab.position
+                if (tab.position == 1) {
+                    viewPager.isUserInputEnabled = true //카카오맵 드래그를 위해
+                    return
+                }
+
+                viewPager.isUserInputEnabled = false
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab) {
+            }
+            override fun onTabReselected(tab: TabLayout.Tab) {
+            }
+        })
+
+        val root = findViewById<ConstraintLayout>(R.id.main);
+        root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            private var isKeyboardShowing = false
+
+            override fun onGlobalLayout() {
+                val rect = Rect()
+                root.getWindowVisibleDisplayFrame(rect)
+                val screenHeight = root.rootView.height
+                val keypadHeight = screenHeight - rect.bottom
+
+                // 키보드가 올라왔을 때
+                if (keypadHeight > screenHeight * 0.15) {
+                    if (!isKeyboardShowing) {
+                        isKeyboardShowing = true
+                        viewPager.isUserInputEnabled = false //키보드가 올라와 있을 때에는 드래그 방지
+                    }
+                } else {
+                    if (isKeyboardShowing) {
+                        isKeyboardShowing = false
+                        viewPager.isUserInputEnabled = true //키보드가 사라졌으니 다시 드래그 허용
+                    }
+                }
+            }
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(mAuth!!.currentUser == null) {
+            startActivity(
+                Intent(this@MainActivity,
+                LoginActivity::class.java)
+            )
+        }
     }
 
     override fun onDestroy() {

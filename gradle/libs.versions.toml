@@ -1,5 +1,5 @@
 [versions]
-agp = "8.4.0"
+agp = "8.5.1"
 kakaomapV = "2.11.1"
 converterGson = "2.9.0"
 kotlin = "1.9.0"
@@ -15,6 +15,7 @@ constraintlayout = "2.1.4"
 databindingRuntime = "8.4.0"
 retrofit = "2.11.0"
 material3Android = "1.2.1"
+playServicesLocation = "21.3.0"
 
 [libraries]
 kakaomap = { module = "com.kakao.maps.open:android", version.ref = "kakaomapV" }
@@ -31,6 +32,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-databinding-runtime = { group = "androidx.databinding", name = "databinding-runtime", version.ref = "databindingRuntime" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

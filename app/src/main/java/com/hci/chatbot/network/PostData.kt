@@ -4,25 +4,31 @@ import com.google.gson.annotations.SerializedName
 import java.util.Date
 
 
-data class CenterAddrResponse (
-    @SerializedName("addr")
-    val addr: String,
-    @SerializedName("msg")
+data class HospitalResponse (
+    val success: Boolean,
     val msg: String,
-    @SerializedName("result")
-    val result: String
+    val hospitals: List<Hospital>
 )
 
+data class Hospital (
+    val address: String,
+    @SerializedName("hospital_name")
+    val hospitalName: String,
+    val latitude: Double,
+    val longitude: Double,
+    val phone: String
+)
 
 // =========================================================================== //
 
 
 data class ClusteringResponse (
-    @SerializedName("data")
-    val Data: List<ClusteringData>
+    val success: Boolean,
+    val msg: String,
+    val data: List<ClusteringMarkers>
 )
 
-data class ClusteringData (
+data class ClusteringMarkers (
     @SerializedName("addr_code")
     val addressCode: String,
     @SerializedName("addr_name")
@@ -31,8 +37,6 @@ data class ClusteringData (
     val alpha: Float,
     @SerializedName("filter")
     val filter: String,
-    @SerializedName("geometry")
-    val geometry: List<List<List<List<Double>>>>,
     @SerializedName("lat")
     val lat: String,
     @SerializedName("lng")

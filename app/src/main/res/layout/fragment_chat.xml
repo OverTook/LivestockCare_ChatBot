@@ -15,6 +15,14 @@
         tools:context=".MainActivity">
 
         <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:text="이 챗봇은 정보 제공 목적으로 만들어졌습니다.\n챗봇의 의견이나 제공된 정보는 의료 전문가의 상담을 대체할 수 없습니다."
+            android:textSize="10sp" />
+
+        <TextView
             android:id="@+id/chatCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -171,5 +179,11 @@
         </RelativeLayout>
 
     </RelativeLayout>
+
+    <View
+        android:id="@+id/tutorial_empty"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_gravity="center"/>
 
 </FrameLayout>

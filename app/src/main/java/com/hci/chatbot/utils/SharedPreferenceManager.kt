@@ -10,6 +10,8 @@ class SharedPreferenceManager(context: Context) {
         private const val KEY_NICKNAME = "nickname"
         private const val KEY_EMAIL = "email"
         private const val KEY_LAST_CHAT_TIME = "last_chat_time"
+        private const val KEY_TUTORIAL_MAP = "tutorial_map"
+        private const val KEY_TUTORIAL_CHAT = "tutorial_chat"
     }
 
     private val sharedPreferences: SharedPreferences =
@@ -26,6 +28,24 @@ class SharedPreferenceManager(context: Context) {
     fun saveLastChatTime(time: Long) {
         editor.putLong(KEY_LAST_CHAT_TIME, time)
         editor.apply()
+    }
+
+    fun saveFirstCheckMap() {
+        editor.putBoolean(KEY_TUTORIAL_MAP, false)
+        editor.apply()
+    }
+
+    fun saveFirstCheckChat() {
+        editor.putBoolean(KEY_TUTORIAL_CHAT, false)
+        editor.apply()
+    }
+
+    fun getFirstCheckChat(): Boolean {
+        return sharedPreferences.getBoolean(KEY_TUTORIAL_CHAT, true)
+    }
+
+    fun getFirstCheckMap(): Boolean {
+        return sharedPreferences.getBoolean(KEY_TUTORIAL_MAP, true)
     }
 
     fun getLastChatTime(): Long {

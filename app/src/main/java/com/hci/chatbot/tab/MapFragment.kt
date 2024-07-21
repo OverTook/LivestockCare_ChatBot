@@ -1,111 +1,147 @@
 package com.hci.chatbot.tab
 
+import android.Manifest
 import android.annotation.SuppressLint
-import android.graphics.Color
+import android.content.pm.PackageManager
 import android.graphics.PointF
-import android.icu.text.DecimalFormat
-import android.os.Build
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.hci.chatbot.network.ClusteringResponse
-
-import com.hci.chatbot.network.DiseaseListResponse
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.material.snackbar.Snackbar
 import com.hci.chatbot.MainActivity
-import com.hci.chatbot.network.NetworkManager
 import com.hci.chatbot.R
 import com.hci.chatbot.maps.BottomSheetList
-import com.hci.chatbot.network.CenterAddrResponse
-import com.kakao.vectormap.GestureType
+import com.hci.chatbot.network.ClusteringResponse
+import com.hci.chatbot.network.DiseaseListResponse
+import com.hci.chatbot.network.HospitalResponse
+import com.hci.chatbot.network.NetworkManager
+import com.hci.chatbot.utils.SharedPreferenceManager
+import com.hci.chatbot.utils.TutorialUtil
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
-import com.kakao.vectormap.camera.CameraPosition
+import com.kakao.vectormap.camera.CameraAnimation
+import com.kakao.vectormap.camera.CameraUpdateFactory
+import com.kakao.vectormap.label.Label
+import com.kakao.vectormap.label.LabelOptions
+import com.kakao.vectormap.label.LabelStyle
+import com.kakao.vectormap.label.LabelStyles
 import com.kakao.vectormap.mapwidget.InfoWindow
 import com.kakao.vectormap.mapwidget.InfoWindowOptions
 import com.kakao.vectormap.mapwidget.component.GuiImage
 import com.kakao.vectormap.mapwidget.component.GuiLayout
 import com.kakao.vectormap.mapwidget.component.GuiText
 import com.kakao.vectormap.mapwidget.component.Orientation
-import com.kakao.vectormap.shape.MapPoints
 import com.kakao.vectormap.shape.Polygon
-import com.kakao.vectormap.shape.PolygonOptions
-import com.kakao.vectormap.shape.PolygonStyle
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.concurrent.Executors
 
 
 class MapFragment : Fragment() {
+
+    private val tutorialUtil = TutorialUtil.getInstance()
 
     private lateinit var viewOfLayout: View
     private lateinit var mapView: MapView
     private lateinit var kakaoMap: KakaoMap
     private lateinit var supportFragmentManager: FragmentManager
     private lateinit var diseaseListManager: BottomSheetList
-    private val polygons = mutableListOf<Polygon>()     // Polygon 객체
-    private val infoWindows = mutableListOf<InfoWindow>()     // Label 객체
-    private var currCenterAddr = ""                     // 중심 좌표 문자열
-    private var zoomlv = ""                             // 확대 레벨 문자열
+    private lateinit var sharedPreferenceManager: SharedPreferenceManager
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var currentLocationMarker: Label
+
+    private val executor = Executors.newSingleThreadScheduledExecutor()
+
+    private val infoWindows = mutableListOf<InfoWindow>()
+    private val hospitalLabels = mutableListOf<Label>()
 
     //질병 목록 조회, 다른 목록 요청시 취소하기 위해 전역 변수로 캐싱
     private var lastCallDisease: Call<DiseaseListResponse>? = null
-    private var lastCallGeometry: Call<ClusteringResponse>? = null
+    private var lastCallClustering: Call<ClusteringResponse>? = null
+    private var lastCallHospital: Call<HospitalResponse>? = null
     private var toast: Toast? = null
+
+    companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         viewOfLayout = inflater.inflate(R.layout.fragment_map, container, false)
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+
+        sharedPreferenceManager = SharedPreferenceManager(requireActivity())
+        if(sharedPreferenceManager.getFirstCheckMap()) {
+            tutorialUtil.mapTutorialing = true
+        }
 
         mapView = viewOfLayout.findViewById(R.id.kakaoMap)
         mapView.start(object : MapLifeCycleCallback() {
             override fun onMapDestroy() {
-
             }
-
             override fun onMapError(error: Exception) {
-
             }
 
         }, object : KakaoMapReadyCallback() {
-
             override fun onMapReady(kakaoMapReady: KakaoMap) {
                 kakaoMap = kakaoMapReady
-                // 지적도 받아오기
-                getGeoPolygon()
+                kakaoMap.logo!!.setPosition(0, 15f, mapView.height.toFloat() - 50);
+
+                if(!tutorialUtil.mapTutorialing) {
+                    initGPS()
+                }
 
                 kakaoMap.setOnViewportClickListener(object : KakaoMap.OnViewportClickListener {
-                    override fun onViewportClicked(p0: KakaoMap?, p1: LatLng?, p2: PointF?) {
-                        if (p1 == null) return
+                    override fun onViewportClicked(p0: KakaoMap?, pos: LatLng?, p2: PointF?) {
+                        if (pos == null) return
 
-                        showDisease(p1)
+                        if(tutorialUtil.mapTutorialing) return
+                        showDisease(pos)
                     }
-
                 })
 
                 //카메라 이동이 있을 떄 지도이동이 끝난 후  카메라 값을 가져옴 (이벤트 등록)
-                kakaoMap.setOnCameraMoveEndListener(object : KakaoMap.OnCameraMoveEndListener {
-                    override fun onCameraMoveEnd(
-                        kakaoMap: KakaoMap,
-                        position: CameraPosition,
-                        gestureType: GestureType,
-                    ) {
-                        getGeoPolygon()
-                    }
-                })
+                kakaoMap.setOnCameraMoveEndListener { _, _, _ ->
+                    getMarkers()
+                }
             }
         })
+
+        viewOfLayout.findViewById<ImageButton>(R.id.gps_move_to_current_btn).setOnClickListener {
+            if (!this::currentLocationMarker.isInitialized) {
+                return@setOnClickListener
+            }
+
+            val cameraUpdate = CameraUpdateFactory.newCenterPosition(
+                LatLng.from(currentLocationMarker.position.latitude, currentLocationMarker.position.longitude)
+            )
+            kakaoMap.moveCamera(cameraUpdate, CameraAnimation.from(200, false, false));
+        }
 
         supportFragmentManager = (activity as MainActivity).supportFragmentManager
         diseaseListManager = BottomSheetList()
@@ -113,10 +149,74 @@ class MapFragment : Fragment() {
         return viewOfLayout
     }
 
+    fun initGPS() {
+        locationRequest = LocationRequest.Builder(5000)
+            .setIntervalMillis(5000)
+            .setMinUpdateIntervalMillis(1000)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .build()
+
+        getCurrentLocation()
+    }
+
+
+    fun getCurrentLocation() {
+        try {
+            if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+                fusedLocationClient.requestLocationUpdates(locationRequest, executor, object : LocationCallback() {
+                    override fun onLocationResult(locationResult: LocationResult) {
+                        super.onLocationResult(locationResult)
+                        locationResult.let {
+                            val lastLocation = locationResult.lastLocation
+                            lastLocation?.let {
+                                if(this@MapFragment::currentLocationMarker.isInitialized) {
+                                    currentLocationMarker.moveTo(LatLng.from(it.latitude, it.longitude))
+                                }
+                                return
+                            }
+                        }
+
+                        Snackbar.make(viewOfLayout.findViewById(R.id.main), "현재 위치를 받아올 수 없습니다.", Snackbar.LENGTH_LONG).show()
+                    }
+                })
+
+                fusedLocationClient.lastLocation.addOnSuccessListener { location : Location? ->
+                    location?.let {
+                        val cameraUpdate = CameraUpdateFactory.newCenterPosition(
+                            LatLng.from(it.latitude, it.longitude)
+                        )
+
+
+                        val styles = kakaoMap.labelManager!!.addLabelStyles(LabelStyles.from(
+                            LabelStyle.from(R.drawable.current_location_marker)))
+                        val layer = kakaoMap.labelManager!!.layer
+
+                        val options = LabelOptions.from(LatLng.from(it.latitude, it.longitude)).setStyles(styles)
+
+                        currentLocationMarker = layer!!.addLabel(options)
+
+                        kakaoMap.moveCamera(cameraUpdate, CameraAnimation.from(100, true, false))
+
+                        getMarkers()
+
+                        return@addOnSuccessListener
+                    }
+
+                    Snackbar.make(viewOfLayout.findViewById(R.id.main), "현재 위치를 받아올 수 없습니다.", Snackbar.LENGTH_LONG).show()
+                    getMarkers()
+                }
+            }
+        } catch (e: SecurityException) {
+            Log.e("GPS Error", "Security Exception: ${e.message}")
+            Snackbar.make(viewOfLayout.findViewById(R.id.main), "현재 위치를 받아올 수 없습니다.", Snackbar.LENGTH_LONG).show()
+            getMarkers()
+        }
+    }
 
     fun showDisease(pos: LatLng) {
         lastCallDisease?.cancel() //이전 요청은 취소한다.
-
 
         //diseaseListManager.setData("지역을 불러오는 중입니다.", ArrayList<DiseaseListItemData>())
         diseaseListManager.show(supportFragmentManager, diseaseListManager.tag)
@@ -160,151 +260,96 @@ class MapFragment : Fragment() {
         })
     }
 
-    fun getGeoPolygon(){
-        var isChangeRegion = true
-        val position = kakaoMap.cameraPosition!!.position //맵 이동시 그리는건 이런식으로
+    fun getMarkers() {
+        if(tutorialUtil.mapTutorialing) return
 
-        NetworkManager.apiService.getCenterAddr(position.latitude, position.longitude, kakaoMap.zoomLevel).enqueue(object : Callback<CenterAddrResponse> {
-            override fun onResponse(call: Call<CenterAddrResponse>, response: Response<CenterAddrResponse>) {
-                if(!response.isSuccessful)
-                    return
+        val rightTop = kakaoMap.fromScreenPoint(mapView.width, 0)!!    //제일 높음
+        val leftBottom = kakaoMap.fromScreenPoint(0, mapView.height)!! //제일 낮음
 
-                val centerAddrResponse = response.body()
-                if (centerAddrResponse != null) {
-                    val addr = centerAddrResponse.addr
-                    if (kakaoMap.zoomLevel <= 8) {
-                        if (zoomlv !== "big") {
-                            zoomlv = "big"
-                            isChangeRegion = true
-                        }
-                        else isChangeRegion = false
-                    } else if (kakaoMap.zoomLevel <= 12) {
-                        if (zoomlv !== "medium") {
-                            zoomlv = "medium"
-                            isChangeRegion = true
-                        }
-                        else if (currCenterAddr != addr) {
-                            currCenterAddr = addr
-                            isChangeRegion = true
-                        }
-                        else isChangeRegion = false
-                    } else {
-                        if (zoomlv !== "small") {
-                            zoomlv = "small"
-                            isChangeRegion = true
-                        }
-                        else if (currCenterAddr != addr) {
-                            currCenterAddr = addr
-                            isChangeRegion = true
-                        }
-                        else isChangeRegion = false
-                    }
-                }
-                Log.e("Result", "1 $zoomlv $currCenterAddr $isChangeRegion ${kakaoMap.zoomLevel}")
+        lastCallClustering?.cancel()
+        lastCallClustering = NetworkManager.apiService.getClusteredData(leftBottom.latitude, leftBottom.longitude, rightTop.latitude, rightTop.longitude, kakaoMap.zoomLevel)
+        lastCallClustering?.enqueue(object : Callback<ClusteringResponse> {
+                override fun onResponse(call: Call<ClusteringResponse>, response: Response<ClusteringResponse>) {
+                    if(call.isCanceled) return
+                    if(!response.isSuccessful) return
 
-                if (isChangeRegion) {
-                    lastCallGeometry?.cancel() //이전 요청은 취소한다.
-                    lastCallGeometry = NetworkManager.apiService.getClusteredData(
-                        position.latitude,
-                        position.longitude,
-                        kakaoMap.zoomLevel
-                    )
-                    lastCallGeometry?.enqueue(object : Callback<ClusteringResponse> {
-                        @RequiresApi(Build.VERSION_CODES.O)
-                        override fun onResponse(
-                            call: Call<ClusteringResponse>,
-                            response: Response<ClusteringResponse>
-                        ) {
-                            if(call.isCanceled) {
-                                Log.e("Network", "취소된 요청입니다.")
-                                return
-                            }
-                            if (!response.isSuccessful)
-                                return
+                    val prevLabelCount = infoWindows.size
 
-                            val result = response.body() ?: return;
-                            killPolygons()
-                            killInfoWindows()
-                            result.Data.forEach { data ->
-                                val areaPoints = ArrayList<LatLng>()
-                                val geometryList = data.geometry[0][0]
-                                geometryList.forEach { geometry ->
-                                    val lat = geometry[1]
-                                    val lng = geometry[0]
-                                    areaPoints.add(LatLng.from(lat, lng))
-                                }
+                    val layer = kakaoMap.mapWidgetManager!!.infoWindowLayer
 
-                                val polygonStyle = PolygonStyle.from(
-                                    Color.argb(0.25f + 0.75f * data.alpha, 1f, 0f, 0f),
-                                    3f,
-                                    Color.BLACK
-                                )
-                                val options: PolygonOptions =
-                                    PolygonOptions.from(
-                                        MapPoints.fromLatLng(areaPoints),
-                                        polygonStyle
-                                    )
+                    response.body()!!.data.forEach { item ->
+                        Log.e("ClusteredMarker", item.addressName + " " + item.totalOccurCount)
+                        val pos = LatLng.from(item.lat.toDouble(), item.lng.toDouble())
 
-                                val polygon: Polygon =
-                                    kakaoMap.shapeManager!!.layer.addPolygon(options)
-                                polygons.add(polygon)
 
-                                val body = GuiLayout(Orientation.Horizontal)
-                                body.setPadding(20, 20, 20, 18)
-                                val bgImage = GuiImage(R.drawable.window_body, true)
-                                bgImage.setFixedArea(7, 7, 7, 7)
-                                body.setBackground(bgImage)
+                        val body = GuiLayout(Orientation.Horizontal)
+                        body.setPadding(20, 20, 20, 18)
 
-                                val text = GuiText(
+                        val bgImage = GuiImage(R.drawable.window_body, true)
+                        bgImage.setFixedArea(7, 7, 7, 7) // 말풍선 이미지 각 모서리의 둥근 부분만큼(7px)은 늘어나지 않도록 고정.
+                        body.setBackground(bgImage)
+
+                        //val text = GuiText("InfoWindow!")
+                        val text = GuiText(
                                     "${
-                                        data.addressName.split(" ").last()
-                                    } ${DecimalFormat("#,###").format(data.totalOccurCount.toDouble())}"
+                                        item.addressName.split(" ").last()
+                                    } ${item.totalOccurCount}"
                                 )
-                                text.setTextSize(20)
-                                body.addView(text)
+                        text.setTextSize(30)
+                        body.addView(text)
 
-                                val infoLatLng =
-                                    LatLng.from(data.lat.toDouble(), data.lng.toDouble())
-                                val infoOptions = InfoWindowOptions.from(infoLatLng)
-                                infoOptions.setBody(body)
-                                infoOptions.setBodyOffset(0f, -1f)
-                                infoOptions.setTail(GuiImage(R.drawable.window_tail, false))
+                        var options = InfoWindowOptions.from(pos)
+                        options.setBody(body)
+                        options.setBodyOffset(0f, -4f) // Body 와 겹치게 -4px 만큼 올려줌.
+                        options = options.setTail(GuiImage(R.drawable.window_tail, false))
 
-                                val infoWindow =
-                                    kakaoMap.mapWidgetManager!!.infoWindowLayer.addInfoWindow(
-                                        infoOptions
-                                    )
-                                infoWindows.add(infoWindow)
+                        infoWindows.add(layer.addInfoWindow(options))
+                    }
 
-                            }
-                            lastCallGeometry = null //요청 처리 완료되었으니 비워준다.
-                        }
-
-                        override fun onFailure(call: Call<ClusteringResponse>, err: Throwable) {
-                            Log.d("RESULT", "통신 오류 발생");
-                            Log.d("RESULT", err.toString());
-                            lastCallGeometry = null //요청 처리 완료되었으니 비워준다.
-                        }
-                    })
+                    //이전에 생성된 부분만 제거
+                    val subList = infoWindows.subList(0, prevLabelCount)
+                    subList.forEach { infoWindow ->
+                        layer.remove(infoWindow)
+                    }
+                    subList.clear()
                 }
-            }
 
-            override fun onFailure(call: Call<CenterAddrResponse>, t: Throwable) {
-                println("Network call failed: ${t.message}")
-            }
-        })
-    }
+                override fun onFailure(call: Call<ClusteringResponse>, err: Throwable) {
+                    Log.e("GetClusteredData Failed", "Network call failed: ${err.message}")
+                }
+            })
 
-    fun killPolygons() {
-        polygons.forEach { polygon ->
-            kakaoMap.shapeManager!!.layer.remove(polygon)
-        }
-    }
+        lastCallHospital?.cancel()
+        lastCallHospital = NetworkManager.apiService.getHospital(leftBottom.latitude, leftBottom.longitude, rightTop.latitude, rightTop.longitude)
+        lastCallHospital?.enqueue(object : Callback<HospitalResponse> {
+                override fun onResponse(call: Call<HospitalResponse>, response: Response<HospitalResponse>) {
+                    if(call.isCanceled) return
+                    if (!response.isSuccessful) return
 
-    fun killInfoWindows() {
-        infoWindows.forEach { infoWindow ->
-            kakaoMap.mapWidgetManager!!.infoWindowLayer.remove(infoWindow)
-        }
+                    val prevLabelCount = hospitalLabels.size
+
+                    val layer = kakaoMap.labelManager!!.layer!!
+
+                    response.body()!!.hospitals.forEach { item ->
+                        val styles = kakaoMap.labelManager!!.addLabelStyles(LabelStyles.from(LabelStyle.from(com.hci.chatbot.R.drawable.vaccines_24dp)))
+                        val options = LabelOptions.from(LatLng.from(item.latitude, item.longitude)).setStyles(styles)
+
+
+                        hospitalLabels.add(layer.addLabel(options))
+                    }
+
+                    //이전에 생성된 부분만 제거
+                    val subList = hospitalLabels.subList(0, prevLabelCount)
+                    subList.forEach { label ->
+                        layer.remove(label)
+                    }
+                    subList.clear()
+                }
+
+                override fun onFailure(call: Call<HospitalResponse>, err: Throwable) {
+                    Log.e("GetHospital Failed", "Network call failed: ${err.message}")
+                }
+            })
     }
 
     override fun onResume() {
