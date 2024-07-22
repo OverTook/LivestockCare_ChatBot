@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,22 +33,31 @@ class BottomSheetHospital : BottomSheetDialogFragment() {
 
     private lateinit var viewOfLayout: View
 
+    private lateinit var name: String
+    private lateinit var address: String
+    private lateinit var phone: String
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         viewOfLayout = inflater.inflate(R.layout.hospital_info_layout, container, false)
 
-        val phoneNumber = arguments?.getString("phone")
-
-        viewOfLayout.findViewById<TextView>(R.id.hospital_name).text = arguments?.getString("hospital_name")
-        viewOfLayout.findViewById<TextView>(R.id.hospital_address).text = arguments?.getString("hospital_address")
+        viewOfLayout.findViewById<TextView>(R.id.hospital_name).text = name
+        viewOfLayout.findViewById<TextView>(R.id.hospital_address).text = address
         viewOfLayout.findViewById<Button>(R.id.call_button).setOnClickListener {
             val intent = Intent(Intent.ACTION_DIAL);
-            intent.data = Uri.parse("tel:$phoneNumber")
+            //Log.e("tel", phoneNumber)
+            intent.data = Uri.parse("tel:$phone")
             startActivity(intent)
         }
 
         return viewOfLayout
+    }
+
+    fun setData(name: String, address: String, phone: String) {
+        this.name = name
+        this.address = address
+        this.phone = phone
     }
 }

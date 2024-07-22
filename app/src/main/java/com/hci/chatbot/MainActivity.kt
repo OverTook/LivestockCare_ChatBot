@@ -33,6 +33,7 @@ import com.hci.chatbot.network.NetworkManager
 import com.hci.chatbot.tab.ChatFragment
 import com.hci.chatbot.tab.MapFragment
 import com.hci.chatbot.tab.ViewPagerAdapter
+import com.hci.chatbot.utils.BottomSheetLinkAccount
 import com.hci.chatbot.utils.DoubleBackPressHandler
 import com.hci.chatbot.utils.SharedPreferenceManager
 import com.hci.chatbot.utils.TutorialUtil
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationPermissionLauncher: ActivityResultLauncher<Array<String>>
 
     private lateinit var callPermissionLauncher: ActivityResultLauncher<String>
-
+    private lateinit var bottomSheetLinkAccount: BottomSheetLinkAccount
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +61,9 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        bottomSheetLinkAccount = BottomSheetLinkAccount()
+        bottomSheetLinkAccount.initGoogle()
 
         mAuth = FirebaseAuth.getInstance()
 
@@ -88,44 +92,52 @@ class MainActivity : AppCompatActivity() {
         val profileManager = SharedPreferenceManager(this)
         val imageURL = profileManager.getImageURL()
         val headerView = navView.getHeaderView(0)
-        if (!imageURL.isNullOrEmpty()) {
+        if (imageURL.isNullOrEmpty()) {
+            //게스트임
+            headerView.findViewById<TextView>(R.id.profileNickname).text = "게스트 계정"
+            headerView.findViewById<TextView>(R.id.profileEmail).text = "Guest"
+        } else {
+            navView.menu.removeGroup(R.id.group0)
             Glide.with(this)
                 .load(imageURL)
                 .into(headerView.findViewById(R.id.profileImage))
+            headerView.findViewById<TextView>(R.id.profileNickname).text = profileManager.getNickname()?: "기본 닉네임"
+            headerView.findViewById<TextView>(R.id.profileEmail).text = profileManager.getEmail()?: "이메일 알 수 없음"
         }
-        headerView.findViewById<TextView>(R.id.profileNickname).text = profileManager.getNickname()?: "기본 닉네임"
-        headerView.findViewById<TextView>(R.id.profileEmail).text = profileManager.getEmail()?: "이메일 알 수 없음"
+
 
         navView.setNavigationItemSelectedListener {
             when(it.itemId) {
+                //계정 연동
+                R.id.link_btn -> {
+                    bottomSheetLinkAccount.show(supportFragmentManager, "linkAccountFragment")
+                    true
+                }
                 // 정기 결제
                 R.id.purchase_btn -> {
-                    val billingDialog = BillingDialog(this, this)
-                    billingDialog.show()
+                    BillingDialog(this, this).show()
                     true
                 }
 
                 // 개인정보처리방침
                 R.id.terms_btn -> {
-                    var intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/OverTook/LivestockCare_ChatBot/main/PrivacyPolicy.html"))
-                    startActivity(intent)
+                    startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://raw.githubusercontent.com/OverTook/LivestockCare_ChatBot/main/PrivacyPolicy.html")
+                        )
+                    )
                     true
                 }
 
                 // 앱 정보
                 R.id.info_btn -> {
-                    val customDialog = InfoDialog(this)
-                    customDialog.show()
+                    InfoDialog(this).show()
                     true
                 }
                 R.id.navView_logout -> {
                     mAuth!!.signOut()
-                    val intent = Intent(
-                        this@MainActivity,
-                        LoginActivity::class.java
-                    )
-                    startActivity(intent)
-
+                    finish()
                     true
                 }
                 else -> false
@@ -192,8 +204,7 @@ class MainActivity : AppCompatActivity() {
                                 Manifest.permission.ACCESS_FINE_LOCATION,
                                 Manifest.permission.ACCESS_COARSE_LOCATION)
                             )
-                        }
-                        if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                        } else if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)
                             != PackageManager.PERMISSION_GRANTED) {
                             Snackbar.make(findViewById(R.id.main), "정확한 위치 정보를 받아올 수 없어 정확성이 떨어집니다.", Snackbar.LENGTH_SHORT).show()
                         }

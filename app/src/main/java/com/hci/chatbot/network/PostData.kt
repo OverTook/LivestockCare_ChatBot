@@ -16,6 +16,7 @@ data class Hospital (
     val hospitalName: String,
     val latitude: Double,
     val longitude: Double,
+    @SerializedName("phone_number")
     val phone: String
 )
 
@@ -141,6 +142,11 @@ data class AccountLoginResponse (
     val msg: String,
 
     val token: String
+)
+
+data class AccountLinkResponse (
+    val result: String,
+    val msg: String
 )
 
 // =========================================================================== //

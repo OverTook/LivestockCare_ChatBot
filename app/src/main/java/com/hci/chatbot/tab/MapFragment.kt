@@ -146,6 +146,11 @@ class MapFragment : Fragment() {
                     showDisease(pos)
                 }
 
+                kakaoMap.setOnInfoWindowClickListener { _, infoWindow, _ ->
+                    if(tutorialUtil.mapTutorialing) return@setOnInfoWindowClickListener
+                    showDisease(infoWindow.position)
+                }
+
                 kakaoMap.setOnLabelClickListener { _, _, label ->
                     if(label?.tag == null) return@setOnLabelClickListener
                     if(label.tag !is Hospital) return@setOnLabelClickListener
@@ -153,12 +158,8 @@ class MapFragment : Fragment() {
                     val item = (label.tag as Hospital)
 
                     val bottomSheetFragment = BottomSheetHospital()
-                    val arg = Bundle()
-                    arg.putString("hospital_name", item.hospitalName)
-                    arg.putString("hospital_address", item.address)
-                    arg.putString("phone", item.phone)
 
-                    bottomSheetFragment.arguments = arg
+                    bottomSheetFragment.setData(item.hospitalName, item.address, item.phone)
                     bottomSheetFragment.show((activity as MainActivity).supportFragmentManager, "bottomSheetHospital")
                 }
 
@@ -345,7 +346,7 @@ class MapFragment : Fragment() {
                         body.setPadding(20, 20, 20, 18)
 
                         val bgImage = GuiImage(R.drawable.window_body, true)
-                        bgImage.setFixedArea(7, 7, 7, 7) // 말풍선 이미지 각 모서리의 둥근 부분만큼(7px)은 늘어나지 않도록 고정.
+                        bgImage.setFixedArea(10, 10, 10, 10) // 말풍선 이미지 각 모서리의 둥근 부분만큼(7px)은 늘어나지 않도록 고정.
                         body.setBackground(bgImage)
 
                         //val text = GuiText("InfoWindow!")
@@ -356,6 +357,7 @@ class MapFragment : Fragment() {
                         )
                         text.setTextSize(30)
                         body.addView(text)
+
 
                         var options = InfoWindowOptions.from(pos)
                         options.setBody(body)

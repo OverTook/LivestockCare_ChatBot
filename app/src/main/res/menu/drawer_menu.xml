@@ -2,6 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group
+        android:id="@+id/group0"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/subtitle0"
+            android:title="게스트 계정 관리">
+            <menu>
+                <item
+                    android:id="@+id/link_btn"
+                    android:icon="@drawable/link_24px"
+                    android:title="계정 연동" />
+            </menu>
+        </item>
+
+    </group>
+
+    <group
         android:id="@+id/group1"
         android:checkableBehavior="single">
         <item
@@ -10,7 +26,6 @@
             <menu>
                 <item
                     android:id="@+id/purchase_btn"
-                    android:checked="true"
                     android:icon="@drawable/credit_card_24px"
                     android:title="정기 결제" />
             </menu>

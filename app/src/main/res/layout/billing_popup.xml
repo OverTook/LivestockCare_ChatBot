@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="330dp"
+    android:layout_width="300dp"
     android:layout_height="270dp"
     android:background="@drawable/info_round_corner">
 
@@ -45,7 +45,7 @@
         android:id="@+id/db_from1"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:text="KUVet의 기능을 제한없이 사용하세요."
         android:textAlignment="center"
         android:textColor="#000000"
@@ -71,7 +71,7 @@
         android:id="@+id/benefit_image"
         android:layout_width="15dp"
         android:layout_height="15dp"
-        android:layout_marginStart="15dp"
+        android:layout_marginStart="25dp"
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/db_label1"
@@ -94,7 +94,7 @@
         layout="@layout/purchase_button_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="10dp"
         android:layout_marginBottom="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

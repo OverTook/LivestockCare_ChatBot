@@ -30,6 +30,13 @@ interface PostInterface {
         @Query("token") token: String
     ): Call<AccountLoginResponse>
 
+    @GET("/link_account")
+    fun linkAccount(
+        @Query("platform") platform: String,
+        @Query("token") token: String,
+        @Query("uid") uid: String
+    ): Call<AccountLinkResponse>
+
     @POST("/chat")
     fun chat(@Body requestData: ChatRequest) : Call<ChatResponse>
 

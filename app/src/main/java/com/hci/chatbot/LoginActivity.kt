@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +39,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.hci.chatbot.utils.SharedPreferenceManager
+import com.hci.chatbot.utils.getSSAID
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.KakaoSdk
 import com.kakao.sdk.common.model.ClientError
@@ -90,7 +92,24 @@ class LoginActivity : AppCompatActivity() {
         findViewById<SignInButton>(R.id.google_sign_btn).setOnClickListener {
             this.showDarkOverlay()
             signIn() //CredentialManager 사용 로그인
-            this.hideDarkOverlay()
+        }
+
+        findViewById<TextView>(R.id.guest_sign_btn).setOnClickListener {
+            val ssaid = this.getSSAID()
+            if(ssaid == null) {
+                Snackbar.make(findViewById(R.id.main), "게스트 로그인이 불가능한 기기입니다.", Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            this.showDarkOverlay()
+
+            val profileManager = SharedPreferenceManager(this)
+            profileManager.saveProfileInfo(
+                "",
+                "",
+                ""
+            )
+
+            retrieveCustomToken("guest", ssaid)
         }
 
         initGoogle()
@@ -165,6 +184,7 @@ class LoginActivity : AppCompatActivity() {
                     // 구글 로그인 실패
                     Log.e("Google Login Error", e.toString())
                     Snackbar.make(findViewById(R.id.main), "로그인에 실패하였습니다.", Snackbar.LENGTH_LONG).show()
+                    this.hideDarkOverlay()
                 }
             }
         }
@@ -212,6 +232,7 @@ class LoginActivity : AppCompatActivity() {
                 }
                 oldGoogleLoginjob?.cancel()
                 Snackbar.make(findViewById(R.id.main), "로그인에 실패했습니다.", Snackbar.LENGTH_LONG).show()
+                this@LoginActivity.hideDarkOverlay()
             }
         }
     }
@@ -228,6 +249,7 @@ class LoginActivity : AppCompatActivity() {
                     append(" : ")
                     append(password)
                 })
+                this@LoginActivity.hideDarkOverlay()
             }
             // GoogleIdToken credential
             is CustomCredential -> {
@@ -244,15 +266,18 @@ class LoginActivity : AppCompatActivity() {
 
                         retrieveCustomToken("google", googleIdTokenCredential.idToken)
                     } catch (e: GoogleIdTokenParsingException) {
+                        this@LoginActivity.hideDarkOverlay()
                         Snackbar.make(findViewById(R.id.main), "로그인에 실패하였습니다.", Snackbar.LENGTH_LONG).show()
                         Log.e("Google Login Error", "Received an invalid google id token response", e)
                     }
                 } else {
+                    this@LoginActivity.hideDarkOverlay()
                     Snackbar.make(findViewById(R.id.main), "로그인에 실패하였습니다.", Snackbar.LENGTH_LONG).show()
                     Log.e("Google Login Error", "Unexpected type of credential")
                 }
             }
             else -> {
+                this@LoginActivity.hideDarkOverlay()
                 Snackbar.make(findViewById(R.id.main), "로그인에 실패하였습니다.", Snackbar.LENGTH_LONG).show()
                 Log.e("Google Login Error", "Unexpected type of credential")
             }
@@ -295,6 +320,7 @@ class LoginActivity : AppCompatActivity() {
                         this@LoginActivity,
                         MainActivity::class.java
                     )
+                    this@LoginActivity.hideDarkOverlay()
                     startActivity(intent)
                 } else {
                     Snackbar.make(
@@ -328,6 +354,7 @@ class LoginActivity : AppCompatActivity() {
             override fun onResponse(call: Call<AccountLoginResponse>, response: Response<AccountLoginResponse>) {
                 if(!response.isSuccessful) {
                     Snackbar.make(findViewById(R.id.main), "로그인에 실패했습니다.", Snackbar.LENGTH_SHORT).show();
+                    this@LoginActivity.hideDarkOverlay()
                     return
                 }
 
@@ -350,6 +377,7 @@ class LoginActivity : AppCompatActivity() {
                                         this@LoginActivity,
                                         MainActivity::class.java
                                     )
+                                    this@LoginActivity.hideDarkOverlay()
                                     startActivity(intent)
                                 } else {
                                     Snackbar.make(
@@ -361,6 +389,7 @@ class LoginActivity : AppCompatActivity() {
                             }
                     } else {
                         Snackbar.make(findViewById(R.id.main), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
+                        this@LoginActivity.hideDarkOverlay()
                     }
                 }
             }
@@ -368,6 +397,7 @@ class LoginActivity : AppCompatActivity() {
             override fun onFailure(call: Call<AccountLoginResponse>, err: Throwable) {
                 Log.e("Network Error", "Authentication Network Failed. $err")
                 Snackbar.make(findViewById(R.id.main), "Authentication Network Failed.", Snackbar.LENGTH_SHORT).show();
+                this@LoginActivity.hideDarkOverlay()
             }
         })
     }

@@ -21,8 +21,8 @@
         android:id="@+id/kakao_sign_btn"
         android:layout_width="244dp"
         android:layout_height="60dp"
-        android:layout_marginBottom="100dp"
-        android:background="@drawable/kakao_login_btn"
+        android:layout_marginBottom="120dp"
+        android:background="@drawable/kakao_login_large_narrow"
         android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,7 +33,20 @@
         android:id="@+id/google_sign_btn"
         android:layout_width="252dp"
         android:layout_height="60dp"
-        android:layout_marginBottom="175dp"
+        android:layout_marginBottom="195dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/guest_sign_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:text="게스트로 로그인"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.hci.chatbot"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 7
         versionName = "1.0.2"
