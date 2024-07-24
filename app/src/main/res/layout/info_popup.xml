@@ -176,7 +176,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="15dp"
-        android:text="1.0.2"
+        android:text="1.0.3"
         android:textColor="#D1D1D1"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"

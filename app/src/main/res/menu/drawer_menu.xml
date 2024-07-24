@@ -59,11 +59,6 @@
             android:title="기타">
             <menu>
                 <item
-                    android:id="@+id/inquire_btn"
-                    android:icon="@drawable/help_24px"
-                    android:title="문의" />
-
-                <item
                     android:id="@+id/info_btn"
                     android:icon="@drawable/info_24px"
                     android:title="앱 정보" />

@@ -151,8 +151,19 @@ data class AccountLinkResponse (
 
 // =========================================================================== //
 
-data class ValidReceptionResponse (
+data class SaveReceiptResponse (
     val result: String,
     val msg: String
 )
 
+data class SaveReceiptRequest (
+    @SerializedName("product_id") val productId: String,
+    @SerializedName("purchase_token") val purchaseToken: String
+)
+
+data class CheckSubscriptionStatusResponse (
+    val result: String,
+    val msg: String,
+    @SerializedName("subscription_status")
+    val subscriptionStatus: String
+)

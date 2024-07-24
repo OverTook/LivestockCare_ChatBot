@@ -10,7 +10,7 @@ interface PostInterface {
 
     @GET("/get_hospital")
     fun getHospital(@Query("lat_from") latFrom: Double, @Query("lng_from") lngFrom: Double,
-                         @Query("lat_to") latTo: Double, @Query("lng_to") lngTo: Double): Call<HospitalResponse>
+                    @Query("lat_to") latTo: Double, @Query("lng_to") lngTo: Double): Call<HospitalResponse>
 
     @GET("/get_disease_clustering")
     fun getClusteredData(@Query("lat_from") latFrom: Double, @Query("lng_from") lngFrom: Double,
@@ -40,6 +40,10 @@ interface PostInterface {
     @POST("/chat")
     fun chat(@Body requestData: ChatRequest) : Call<ChatResponse>
 
-    @GET("/valid_reception")
-    fun validReception(@Query("data") data: String) : Call<ValidReceptionResponse>
+    @POST("/save_receipt")
+    fun saveReceipt(@Body requestData: SaveReceiptRequest) : Call<SaveReceiptResponse>
+
+    @GET("/check_subscription_status")
+    fun checkSubscriptionStatus(): Call<CheckSubscriptionStatusResponse>
 }
+

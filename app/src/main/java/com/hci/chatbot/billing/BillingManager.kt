@@ -12,9 +12,16 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.google.android.material.snackbar.Snackbar
+import com.hci.chatbot.R
+import com.hci.chatbot.network.NetworkManager
+import com.hci.chatbot.network.SaveReceiptRequest
+import com.hci.chatbot.network.SaveReceiptResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
 
 interface BillingCallback {
     fun onBillingConnected()
@@ -28,6 +35,9 @@ class BillingManager(private val activity: Activity, private val callback: Billi
         if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (purchase in purchases) {
                 confirmPurchase(purchase)
+                val purchaseToken = purchase.purchaseToken
+                val productId = purchase.products[0]
+                verifyPurchaseOnServer(productId, purchaseToken)
             }
         } else {
             callback.onFailure(billingResult.responseCode)
@@ -86,11 +96,11 @@ class BillingManager(private val activity: Activity, private val callback: Billi
         }
     }
 
-        //billingClient.queryProductDetailsAsync(params) { _, list ->
-        //    CoroutineScope(Dispatchers.Main).launch {
-        //        resultBlock(list ?: emptyList())
-        //    }
-        //}
+    //billingClient.queryProductDetailsAsync(params) { _, list ->
+    //    CoroutineScope(Dispatchers.Main).launch {
+    //        resultBlock(list ?: emptyList())
+    //    }
+    //}
 
 
     /**
@@ -181,5 +191,25 @@ class BillingManager(private val activity: Activity, private val callback: Billi
                 }
             }
         }
+    }
+
+    /**
+     * 구매를 서버에서 검증
+     * @param productId 구매한 제품 ID
+     * @param purchaseToken 구매 토큰
+     */
+    private fun verifyPurchaseOnServer(productId: String, purchaseToken: String) {
+        NetworkManager.apiService.saveReceipt(SaveReceiptRequest(productId, purchaseToken)).enqueue(object : Callback<SaveReceiptResponse> {
+            override fun onResponse(call: Call<SaveReceiptResponse>, response: retrofit2.Response<SaveReceiptResponse>) {
+                if(!response.isSuccessful) {
+                    Log.e("Network", "요청에 실패했습니다.")
+                    return
+                }
+            }
+
+            override fun onFailure(call: Call<SaveReceiptResponse>, err: Throwable) {
+                Snackbar.make(activity.findViewById(R.id.main), "영수증 검증을 진행하지 못하였습니다.", Snackbar.LENGTH_LONG).show();
+            }
+        })
     }
 }

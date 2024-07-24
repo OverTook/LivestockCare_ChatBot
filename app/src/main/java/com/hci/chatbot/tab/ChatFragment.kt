@@ -7,7 +7,6 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
@@ -148,7 +147,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
                 if(waitForResponse)
                     return@OnKeyListener true
 
-                if(curChatCount <= 0) {
+                if(curChatCount <= 0 && curChatCount != -1) {
                     Snackbar.make(viewOfLayout.findViewById(R.id.main), "금일 챗봇 이용 횟수가 소진되었습니다.", Snackbar.LENGTH_LONG)
                         .setAnchorView(viewOfLayout.findViewById(R.id.chat_input_background))
                         .show()
@@ -165,7 +164,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
     }
 
     private fun sendAndWait(msg: String) {
-        if(this.curChatCount <= 0) {
+        if(this.curChatCount <= 0 && curChatCount != -1) {
             return
         }
 
@@ -219,6 +218,8 @@ class ChatFragment : Fragment(), View.OnClickListener {
             }
             -1 -> {
                 sb.append("제한 없음")
+                viewOfLayout.findViewById<TextView>(R.id.chatCount).text = sb.toString()
+                return
             }
             else -> {
                 sb.append(curChatCount)
@@ -262,7 +263,7 @@ class ChatFragment : Fragment(), View.OnClickListener {
                 if(waitForResponse)
                     return
 
-                if(curChatCount <= 0) {
+                if(curChatCount <= 0 && curChatCount != -1) {
                     Snackbar.make(viewOfLayout.findViewById(R.id.main), "금일 챗봇 이용 횟수가 소진되었습니다.", Snackbar.LENGTH_LONG)
                         .setAnchorView(viewOfLayout.findViewById(R.id.relativeLayout))
                         .show()
